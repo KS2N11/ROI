@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins in production
 
 # Frontend configuration modification
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://your-frontend-domain.com')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://roi-3dqo.onrender.com')
 
 # Load environment variables
 load_dotenv()
