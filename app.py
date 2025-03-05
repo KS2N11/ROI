@@ -30,6 +30,10 @@ except Exception as e:
     print(f"Error initializing Azure OpenAI client: {e}")
     client = None
 
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('add_gain.3.html', frontend_url=FRONTEND_URL)
+
 @app.route('/generate-ai-observations', methods=['POST'])
 def generate_ai_observations():
     try:
