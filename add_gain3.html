@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Gains Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4a6da7;
+            --secondary-color: #f4f6f9;
+            --border-color: #e0e0e0;
+            --success-color: #4caf50;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style-type: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        nav ul li a.active {
+            color: var(--primary-color);
+        }
+
+        .container {
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            gap: 15px;
+            margin: 15px auto;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .add-gain-section {
+            width: 100%;
+        }
+
+        .add-gain-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            width: 47%;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon {
+            margin-right: 8px;
+        }
+
+        #subcategories {
+            display: flex;
+            gap: 15px;
+        }
+
+        #subcategories label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        #subcategories input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .summary-section {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .analysis-section {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        tfoot th,
+        tfoot td {
+            font-weight: 600;
+            background-color: var(--secondary-color);
+        }
+
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background-color: #2196F3;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+        }
+
+        .forecast-section {
+            grid-column: span 2;
+            grid-row: 3;
+        }
+
+        .forecast-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+
+        .forecast-controls-section {
+            width: 100%;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 350px;
+            /* Increase chart height */
+            margin-top: 10px;
+            position: relative;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 20px;
+            background-color: white;
+        }
+
+        .chart {
+            background-image: linear-gradient(to right, #4a6da7 50%, #4caf50 50%);
+            background-size: 100% 100%;
+            height: 100%;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .chart::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top right, #4a6da7 0%, rgba(74, 109, 167, 0.7) 30%, rgba(76, 175, 80, 0.7) 70%, #4caf50 100%);
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .custom-select {
+            position: relative;
+        }
+
+        .custom-select select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px auto;
+            padding-right: 30px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon input {
+            padding-left: 30px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+
+
+        .chart-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0;
+            /* Remove top margin */
+        }
+
+        .chart-data-table th,
+        .chart-data-table td {
+            border: 1px solid #e0e0e0;
+            padding: 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .chart-data-table tbody tr:first-child {
+            background-color: rgba(255, 206, 86, 0.2);
+        }
+
+        .chart-data-table tbody tr:last-child {
+            background-color: rgba(75, 192, 192, 0.2);
+        }
+
+        .chart-section {
+            width: 100%;
+        }
+
+        .chart-data-section {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .chart-section.card {
+            margin-bottom: 0;
+            /* Remove bottom margin */
+        }
+
+        .chart-data-section.card {
+            margin-top: -15px;
+            /* Pull the table up slightly */
+            position: relative;
+            z-index: 10;
+        }
+
+        .results-section {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-circle"></div>
+            ROI Calculator
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#" class="active">ROI Calculator</a></li>
+                <li><a href="#">Reports</a></li>
+                <li><a href="#">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Success message for new gain -->
+    <div id="successMessage" style="
+        display: none; 
+        position: fixed; 
+        top: 20px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background-color: #28a745; 
+        color: white; 
+        padding: 10px 20px; 
+        border-radius: 5px; 
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        font-weight: bold;
+        z-index: 1000;">
+        ✅ New Gain Added
+    </div>
+
+
+    <div class="container">
+        <!-- 1. Full-width Add Gain section -->
+        <div class="add-gain-section card">
+            <h2>Add Gain</h2>
+            <!-- Your existing add gain form content -->
+            <p style="margin-bottom: 15px; font-size: 14px;">Enter projected gains for the ROI calculation. Add multiple
+                gains using the + button.</p>
+            <div class="add-gain-form">
+                <div class="form-group">
+                    <label for="gainSelect">Gain due to this project</label>
+                    <div class="custom-select">
+                        <select id="gainSelect" onchange="updateSubcategories()">
+                            <option value="">Select a Gain</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="subcategories"></div>
+
+                <button class="btn" onclick="addGain()">
+                    <span class="btn-icon">+</span> Add Gain
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Full-width Forecast Controls section -->
+        <div class="forecast-controls-section card">
+            <h2>Forecasting Controls</h2>
+            <div class="forecast-controls">
+                <!-- Your existing forecast control inputs -->
+                <div class="form-group">
+                    <label>Expected Revenue Growth (%)</label>
+                    <input type="number" id="expectedRevenueGrowth" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Expected AMC Increase (%)</label>
+                    <input type="number" id="expectedAMCIncrease" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Expected Cost Savings (%)</label>
+                    <input type="number" id="expectedCostSavings" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Initial AMC Cost ($)</label>
+                    <input type="number" id="initialAMCCost" placeholder="0">
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button class="btn" onclick="generateForecastTable()">Generate Forecast</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Full-width Chart section -->
+        <div class="chart-section card" id="chart-container card">
+            <h2>ROI Analysis</h2>
+            <div class="chart-toggle" style="display: flex; justify-content: center; margin-bottom: 10px;">
+                <button id="toggleChartType" class="btn">Switch Chart Type</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="roiChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 4. Full-width Chart Data Table section -->
+        <div class="chart-data-section card">
+            <div class="table-container">
+                <table id="chartDataTable" class="chart-data-table">
+                    <!-- Your existing chart data table content -->
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th colspan="4">Year 0</th>
+                            <th colspan="4">Year 1</th>
+                            <th colspan="4">Year 2</th>
+                            <th colspan="4">Year 3</th>
+                            <th colspan="4">Year 4</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>Q1</th>
+                            <th>Q2</th>
+                            <th>Q3</th>
+                            <th>Q4</th>
+                            <th>Q1</th>
+                            <th>Q2</th>
+                            <th>Q3</th>
+                            <th>Q4</th>
+                            <th>Q1</th>
+                            <th>Q2</th>
+                            <th>Q3</th>
+                            <th>Q4</th>
+                            <th>Q1</th>
+                            <th>Q2</th>
+                            <th>Q3</th>
+                            <th>Q4</th>
+                            <th>Q1</th>
+                            <th>Q2</th>
+                            <th>Q3</th>
+                            <th>Q4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="costRow">
+                            <td>Cumulative Project Cost</td>
+                        </tr>
+                        <tr id="profitRow">
+                            <td>Cumulative Gain</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. AI Observations -->
+        <div class="card">
+            <h2>AI-Generated Observations</h2>
+            <div id="loadingSpinner" style="display: none; padding: 25px;">
+                🔄 Fetching AI Insights...
+            </div>
+            <div id="aiObservations" style="padding: 25px;"></div>
+        </div>
+
+
+        <!-- 6. Two-column results section -->
+        <div class="results-section">
+            <!-- ROI Calculation -->
+            <div class="summary-section card">
+                <h2>ROI Calculation</h2>
+                <!-- Your existing ROI calculation table -->
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Gain</th>
+                                <th>Investment Cost ($)</th>
+                                <th>Increase in Revenue ($)</th>
+                                <th>Cost Saving ($)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="1">Total</th>
+                                <th id="totalInvestment">$0.00</th>
+                                <th id="totalRevenue">$0.00</th>
+                                <th id="totalSavings">$0.00</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Forecast Table -->
+            <div class="forecast-section card">
+                <h2>Forecast Table</h2>
+                <!-- Your existing forecast table -->
+                <div class="table-container">
+                    <table id="forecastTable">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Investment Cost ($)</th>
+                                <th>AMC Cost ($)</th>
+                                <th>Revenue ($)</th>
+                                <th>Cost Savings ($)</th>
+                                <th>Total Revenue & Savings ($)</th>
+                                <th>Cumulative Total Cost ($)</th>
+                                <th>Net Profit/Loss ($)</th>
+                                <th>Cumulative Profit/Loss ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const gainsData = {
+            "Saves Costs": ["Total Hours Saved", "Hourly Wage ($)", "Period (in Months)"],
+            "Speeds Up GTM": ["Projected Sales per Period ($)", "Number of Periods Gained", "Cost of Launching Earlier ($)"],
+            "Improves Customer Service": ["Increased Customer Retention Rate (%)", "Total Revenue from Retained Customers ($)", "Cost of Customer Satisfaction Initiatives ($)"],
+            "Gives Competitive Advantage": ["Premium Pricing (Per Customer) ($)", "Projected Sales Volume"],
+            "Improves Employee Satisfaction": ["Turnover Rate Reduction (%)", "Average Cost of Turnover ($)", "Productivity Increase (%)", "Average Salary ($)", "Number of Employees"],
+            "Reduces Customer Acquisition Cost": ["Total Sales and Marketing Expenses ($)", "Number of New Customers Acquired"],
+            "Maximizes Customer Lifetime Value": ["Average Purchase Value ($)", "Purchase Frequency", "Customer Lifespan"],
+            "Improving Operational Efficiency": ["Labor Cost Savings ($)", "Increased Productivity Value ($)", "Investment Cost A ($)"],
+            "Enhancing Cybersecurity": ["Estimated Losses Avoided ($)", "Investment Cost B ($)"],
+            "Migrating to Cloud": ["Infrastructure Savings ($)", "Agility Benefits ($)", "Migration Cost ($)"],
+            "Enabling Data-Driven Decisions": ["Incremental Revenue from Data Insights ($)", "Investment Cost C ($)"],
+            "Optimizing Costs": ["Cost Savings Identified and Realized ($)", "Cost of Optimization ($)"],
+            "Enhancing Customer Experience": ["Increased Revenue from Customer Retention ($)", "New Customer Revenue ($)", "Investment Cost D ($)"],
+            "Automating Repetitive Tasks": ["Labor Cost Savings ($)", "Reduced Error Costs ($)", "Automation Investment ($)"],
+            "Ensuring Compliance": ["Avoided Penalties and Fines ($)", "Cost Savings from Compliance Automation ($)", "Compliance Costs ($)"],
+            "Integrating Legacy Systems": ["Extended System Lifespan Value ($)", "Improved Efficiency ($)", "Integration Costs ($)"],
+            "Improving Agility": ["Revenue from Faster Adaptation to Market ($)", "Increased Innovation ROI ($)", "Investment Cost E ($)"]
+        };
+
+        const gainSelect = document.getElementById("gainSelect");
+        Object.keys(gainsData).forEach(gain => {
+            let option = document.createElement("option");
+            option.value = gain;
+            option.textContent = gain;
+            gainSelect.appendChild(option);
+        });
+
+        function updateSubcategories() {
+            const selectedGain = gainSelect.value;
+            const subcategoriesDiv = document.getElementById("subcategories");
+            //const subcategorySelect = document.getElementById("subcategorySelect");
+
+            subcategoriesDiv.innerHTML = "";
+            //subcategorySelect.innerHTML = "<option value=''>Select Sub Category</option>";
+            //subcategorySelect.disabled = !selectedGain;
+
+            //if (!selectedGain) return;
+
+            // Add subcategories to dropdown
+            gainsData[selectedGain].forEach(subcategory => {
+                let option = document.createElement("option");
+                option.value = subcategory;
+                option.textContent = subcategory;
+                //subcategorySelect.appendChild(option);
+            });
+
+            // Add input fields for the subcategories
+            gainsData[selectedGain].forEach(subcategory => {
+                const formGroup = document.createElement("div");
+                formGroup.className = "form-group";
+
+                const label = document.createElement("label");
+                label.textContent = subcategory;
+
+                const inputContainer = document.createElement("div");
+                inputContainer.className = "input-with-icon";
+
+                const icon = document.createElement("span");
+                icon.className = "input-icon";
+                /*if (subcategory.includes("$")) {
+                    icon.textContent = "$";
+                } else if (subcategory.includes("%")) {
+                    icon.textContent = "%";
+                } else {
+                    icon.textContent = "#";
+                }*/
+
+                const input = document.createElement("input");
+                input.type = "number";
+                input.name = subcategory;
+                input.placeholder = "0";
+
+                inputContainer.appendChild(icon);
+                inputContainer.appendChild(input);
+
+                formGroup.appendChild(label);
+                formGroup.appendChild(inputContainer);
+
+                subcategoriesDiv.appendChild(formGroup);
+            });
+        }
+
+        function addGain() {
+            const selectedGain = gainSelect.value;
+            if (!selectedGain) return;
+
+            const inputs = document.querySelectorAll("#subcategories input");
+            let values = {};
+            inputs.forEach(input => values[input.name] = Number(input.value) || 0);
+
+            let investmentCost = 0, increaseRevenue = 0, costSaving = 0;
+            switch (selectedGain) {
+                case "Saves Costs":
+                    costSaving = values["Total Hours Saved"] * values["Hourly Wage ($)"] * values["Period (in Months)"];
+                    break;
+
+                case "Speeds Up GTM":
+                    investmentCost = values["Cost of Launching Earlier ($)"];
+                    increaseRevenue = (values["Projected Sales per Period ($)"] * values["Number of Periods Gained"]) - values["Cost of Launching Earlier ($)"];
+                    break;
+
+                case "Improves Customer Service":
+                    investmentCost = values["Cost of Customer Satisfaction Initiatives ($)"];
+                    costSaving = (values["Total Revenue from Retained Customers ($)"] * (values["Increased Customer Retention Rate (%)"] / 100)) - values["Cost of Customer Satisfaction Initiatives ($)"];
+                    break;
+
+                case "Gives Competitive Advantage":
+                    increaseRevenue = values["Premium Pricing (Per Customer) ($)"] * values["Projected Sales Volume"];
+                    break;
+
+                case "Improves Employee Satisfaction":
+                    costSaving = ((values["Turnover Rate Reduction (%)"] / 100) * values["Average Cost of Turnover ($)"] * (values["Productivity Increase (%)"] / 100)) + (values["Average Salary ($)"] * values["Number of Employees"]);
+                    break;
+
+                case "Reduces Customer Acquisition Cost":
+                    investmentCost = values["Total Sales and Marketing Expenses ($)"];
+                    break;
+
+                case "Maximizes Customer Lifetime Value":
+                    increaseRevenue = values["Average Purchase Value ($)"] * values["Purchase Frequency"] * values["Customer Lifespan"];
+                    break;
+
+                case "Improving Operational Efficiency":
+                    investmentCost = values["Investment Cost A ($)"];
+                    costSaving = (values["Labor Cost Savings ($)"] + values["Increased Productivity Value ($)"]) - values["Investment Cost A ($)"];
+                    break;
+
+                case "Enhancing Cybersecurity":
+                    investmentCost = values["Investment Cost B ($)"];
+                    costSaving = values["Estimated Losses Avoided ($)"] - values["Investment Cost B ($)"];
+                    break;
+
+                case "Migrating to Cloud":
+                    investmentCost = values["Migration Cost ($)"];
+                    costSaving = (values["Infrastructure Savings ($)"] + values["Agility Benefits ($)"]) - values["Migration Cost ($)"];
+                    break;
+
+                case "Enabling Data-Driven Decisions":
+                    investmentCost = values["Investment Cost C ($)"];
+                    increaseRevenue = values["Incremental Revenue from Data Insights ($)"];
+                    break;
+
+                case "Optimizing Costs":
+                    investmentCost = values["Cost of Optimization ($)"];
+                    costSaving = values["Cost Savings Identified and Realized ($)"] - values["Cost of Optimization ($)"];
+                    break;
+
+                case "Enhancing Customer Experience":
+                    investmentCost = values["Investment Cost D ($)"];
+                    increaseRevenue = (values["Increased Revenue from Customer Retention ($)"] + values["New Customer Revenue ($)"]) - values["Investment Cost D ($)"];
+                    break;
+
+                case "Automating Repetitive Tasks":
+                    investmentCost = values["Automation Investment ($)"];
+                    costSaving = (values["Labor Cost Savings ($)"] + values["Reduced Error Costs ($)"]) - investmentCost;
+                    break;
+
+                case "Ensuring Compliance":
+                    investmentCost = values["Compliance Costs ($)"];
+                    costSaving = (values["Avoided Penalties and Fines ($)"] + values["Cost Savings from Compliance Automation ($)"]) - values["Compliance Costs ($)"];
+                    break;
+
+                case "Integrating Legacy Systems":
+                    investmentCost = values["Integration Costs ($)"];
+                    costSaving = (values["Extended System Lifespan Value ($)"] + values["Improved Efficiency ($)"]) - values["Integration Costs ($)"];
+                    break;
+
+                case "Improving Agility":
+                    investmentCost = values["Investment Cost E ($)"];
+                    costSaving = (values["Revenue from Faster Adaptation to Market ($)"] + values["Increased Innovation ROI ($)"]) - values["Investment Cost E ($)"];
+                    break;
+            }
+
+
+            //const selectedSubcategory = document.getElementById("subcategorySelect").value || gainsData[selectedGain][0];
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${selectedGain}</td>
+                <td>$${investmentCost.toLocaleString('en-US')}</td>
+                <td>$${increaseRevenue.toLocaleString('en-US')}</td>
+                <td>$${costSaving.toLocaleString('en-US')}</td>
+                            
+                
+                <td class="actions">
+                    <button class="btn btn-sm btn-edit">Edit</button>
+                    <button class="btn btn-sm btn-delete">Delete</button>
+                </td>
+            `;
+            document.querySelector("#dataTable tbody").appendChild(row);
+
+            // Add event listeners to edit and delete buttons
+            const editBtn = row.querySelector(".btn-edit");
+            const deleteBtn = row.querySelector(".btn-delete");
+
+            editBtn.addEventListener("click", function () {
+                // Here you would add code to populate the form with the row data for editing
+                alert("Edit functionality to be implemented");
+            });
+
+            deleteBtn.addEventListener("click", function () {
+                row.remove();
+                updateTotals();
+            });
+
+            updateTotals();
+
+            // Reset form
+            gainSelect.value = "";
+            //document.getElementById("subcategorySelect").value = "";
+            //document.getElementById("subcategorySelect").disabled = true;
+            //document.getElementById("yearlyTotalGain").value = "0";
+            document.getElementById("subcategories").innerHTML = "";
+
+            // Show success message
+            showSuccessMessage();
+        }
+
+        function updateTotals() {
+            let totalInvestment = 0;
+            let totalRevenue = 0;
+            let totalSavings = 0;
+
+            document.querySelectorAll("#dataTable tbody tr").forEach(row => {
+                let investment = parseFloat(row.children[1].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let revenue = parseFloat(row.children[2].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let savings = parseFloat(row.children[3].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+
+                totalInvestment += investment;
+                totalRevenue += revenue;
+                totalSavings += savings;
+            });
+
+            // Update the total row in the tfoot
+            document.getElementById("totalInvestment").textContent = `$${totalInvestment.toLocaleString('en-US')}`;
+            document.getElementById("totalRevenue").textContent = `$${totalRevenue.toLocaleString('en-US')}`;
+            document.getElementById("totalSavings").textContent = `$${totalSavings.toLocaleString('en-US')}`;
+        }
+
+
+
+        function generateForecastTable() {
+            // Remove "$" symbols before parsing numbers
+            let totalInvestment = parseFloat(document.getElementById("totalInvestment").textContent.replace(/[^0-9.-]+/g, "")) || 0;
+            let totalRevenue = parseFloat(document.getElementById("totalRevenue").textContent.replace(/[^0-9.-]+/g, "")) || 0;
+            let totalSavings = parseFloat(document.getElementById("totalSavings").textContent.replace(/[^0-9.-]+/g, "")) || 0;
+
+            let expectedRevenueGrowth = parseFloat(document.getElementById("expectedRevenueGrowth").value) / 100 || 0;
+            let expectedAMCIncrease = parseFloat(document.getElementById("expectedAMCIncrease").value) / 100 || 0;
+            let expectedCostSavings = parseFloat(document.getElementById("expectedCostSavings").value) / 100 || 0;
+            let initialAMCCost = parseFloat(document.getElementById("initialAMCCost").value) || 0;
+
+            let tbody = document.querySelector("#forecastTable tbody");
+            tbody.innerHTML = "";
+
+            let cumulativeTotalCost = 0;
+            let cumulativeProfitLoss = 0;
+            let amcCost = Math.round(initialAMCCost);
+            let revenue = Math.round(totalRevenue);
+            let costSavings = Math.round(totalSavings);
+
+            for (let year = 0; year <= 4; year++) {
+                let investmentCost = Math.round(year === 0 ? totalInvestment : 0);
+                let totalRevenueSavings = Math.round(revenue + costSavings);
+                cumulativeTotalCost = Math.round((year === 0) ? (investmentCost + amcCost) : (cumulativeTotalCost + amcCost));
+                let netProfitLoss = Math.round(totalRevenueSavings - cumulativeTotalCost);
+                cumulativeProfitLoss = Math.round((year === 0) ? netProfitLoss : (cumulativeProfitLoss + netProfitLoss));
+
+                let row = document.createElement("tr");
+                row.innerHTML = `
+            <td>${year}</td>
+            <td>$${investmentCost.toLocaleString('en-US')}</td>
+            <td>$${amcCost.toLocaleString('en-US')}</td>
+            <td>$${revenue.toLocaleString('en-US')}</td>
+            <td>$${costSavings.toLocaleString('en-US')}</td>
+            <td>$${totalRevenueSavings.toLocaleString('en-US')}</td>
+            <td>$${cumulativeTotalCost.toLocaleString('en-US')}</td>
+            <td>$${netProfitLoss.toLocaleString('en-US')}</td>
+            <td>$${cumulativeProfitLoss.toLocaleString('en-US')}</td>
+        `;
+                tbody.appendChild(row);
+
+                revenue *= (1 + expectedRevenueGrowth);
+                costSavings *= (1 + expectedCostSavings);
+                amcCost *= (1 + expectedAMCIncrease);
+            }
+
+            // Scroll down to the chart after generating the forecast
+            setTimeout(() => {
+                let chartContainer = document.getElementById("chart-container card");
+                if (chartContainer) {
+                    chartContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+                } else {
+                    console.error("Chart container not found!");
+                }
+            },);
+        }
+
+        // Create chart
+        let roiChart;
+        let currentChartType = 'line'; // Default to line chart
+        let quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1'];
+        let costData = Array(13).fill(0);
+        let profitData = Array(13).fill(0);
+
+        function initializeChart() {
+            const ctx = document.getElementById('roiChart').getContext('2d');
+
+            // Update quarters array for full range
+            quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4'];
+            costData = Array(20).fill(0);
+            profitData = Array(20).fill(0);
+
+            roiChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: quarters,
+                    datasets: [{
+                        label: 'Cumulative Project Cost',
+                        data: costData,
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Cumulative Gain',
+                        data: profitData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)'
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString('en-US');
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (Quarters)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Project ROI',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '$' + context.parsed.y.toLocaleString('en-US');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            roiChart.destroy = function () {
+                Chart.prototype.destroy.call(this);
+            };
+        }
+
+        // Initialize chart on page load
+        document.addEventListener('DOMContentLoaded', initializeChart);
+
+
+        // Update chart and data table based on forecast data
+        function updateChartAndTable() {
+            // Get forecast data
+            const forecastRows = document.querySelectorAll("#forecastTable tbody tr");
+            if (forecastRows.length === 0) return;
+
+            // Clear existing table data
+            const costRow = document.getElementById('costRow');
+            const profitRow = document.getElementById('profitRow');
+
+            // Keep only the first cell (label)
+            while (costRow.cells.length > 1) {
+                costRow.deleteCell(1);
+            }
+            while (profitRow.cells.length > 1) {
+                profitRow.deleteCell(1);
+            }
+
+            // Update quarters array to include all quarters from Year 0 Q1 to Year 4 Q4
+            quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4'];
+
+            // Initialize data arrays with correct length
+            costData = Array(20).fill(0);
+            profitData = Array(20).fill(0);
+
+            // Process forecast data
+            forecastRows.forEach((row, yearIndex) => {
+                if (yearIndex > 4) return; // We only want 5 years of data (0-4)
+
+                const cumulativeTotalCost = parseFloat(row.cells[6].textContent.replace(/[^0-9.-]+/g, ""));
+                const cumulativeProfitLoss = parseFloat(row.cells[8].textContent.replace(/[^0-9.-]+/g, ""));
+
+                // Calculate the starting index for this year
+                const startIndex = yearIndex * 4;
+
+                // If we have the next year's data, calculate quarter values
+                if (yearIndex < forecastRows.length - 1) {
+                    const nextYearCost = parseFloat(forecastRows[yearIndex + 1].cells[6].textContent.replace(/[^0-9.-]+/g, ""));
+                    const nextYearProfit = parseFloat(forecastRows[yearIndex + 1].cells[8].textContent.replace(/[^0-9.-]+/g, ""));
+
+                    const costStep = (nextYearCost - cumulativeTotalCost) / 4;
+                    const profitStep = (nextYearProfit - cumulativeProfitLoss) / 4;
+
+                    // Generate data for each quarter
+                    for (let q = 0; q < 4; q++) {
+                        const index = startIndex + q;
+                        costData[index] = cumulativeTotalCost + costStep * q;
+                        profitData[index] = (cumulativeProfitLoss + profitStep * q) > 0 ? (cumulativeProfitLoss + profitStep * q) : 0;
+
+                        // Add to table
+                        let costCell = costRow.insertCell();
+                        costCell.textContent = '$' + Math.round(costData[index]).toLocaleString('en-US');
+
+                        let profitCell = profitRow.insertCell();
+                        profitCell.textContent = profitData[index] > 0 ? '$' + Math.round(profitData[index]).toLocaleString('en-US') : '$-';
+                    }
+                } else {
+                    // For the last year, just repeat the value for all quarters
+                    for (let q = 0; q < 4; q++) {
+                        const index = startIndex + q;
+                        costData[index] = cumulativeTotalCost;
+                        profitData[index] = cumulativeProfitLoss > 0 ? cumulativeProfitLoss : 0;
+
+                        // Add to table
+                        let costCell = costRow.insertCell();
+                        costCell.textContent = '$' + Math.round(costData[index]).toLocaleString('en-US');
+
+                        let profitCell = profitRow.insertCell();
+                        profitCell.textContent = profitData[index] > 0 ? '$' + Math.round(profitData[index]).toLocaleString('en-US') : '$-';
+                    }
+                }
+            });
+
+            // Update chart
+            roiChart.data.labels = quarters;
+            roiChart.data.datasets[0].data = costData;
+            roiChart.data.datasets[1].data = profitData;
+            roiChart.update();
+        }
+
+        // Modify the generateForecastTable function to call updateChartAndTable
+        const originalGenerateForecastTable = generateForecastTable;
+        generateForecastTable = function () {
+            originalGenerateForecastTable();
+            updateChartAndTable();
+            fetchAIObservations();
+        };
+
+
+        // Replace hardcoded localhost with relative or environment-based URL
+        const API_ENDPOINT = window.location.origin + '/generate-ai-observations';
+        // Or if using environment variable
+        // const API_ENDPOINT = process.env.REACT_APP_API_URL + '/generate-ai-observations';
+
+        async function fetchAIObservations() {
+            const forecastRows = document.querySelectorAll("#forecastTable tbody tr");
+            if (forecastRows.length === 0) return;
+
+            let forecastData = [];
+            forecastRows.forEach(row => {
+                let year = row.cells[0].textContent;
+                let investment = parseFloat(row.cells[1].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let amcCost = parseFloat(row.cells[2].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let revenue = parseFloat(row.cells[3].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let savings = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let totalRevenueSavings = parseFloat(row.cells[5].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let cumulativeTotalCost = parseFloat(row.cells[6].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let netProfitLoss = parseFloat(row.cells[7].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                let cumulativeProfitLoss = parseFloat(row.cells[8].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+
+                forecastData.push({
+                    year, investment, amcCost, revenue, savings,
+                    totalRevenueSavings, cumulativeTotalCost, netProfitLoss, cumulativeProfitLoss
+                });
+            });
+
+            const aiObservationsDiv = document.getElementById("aiObservations");
+            const loadingSpinner = document.getElementById("loadingSpinner");
+
+            // Show loading indicator
+            aiObservationsDiv.style.display = "none";
+            loadingSpinner.style.display = "block";
+
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ forecastData })
+                });
+
+                console.log(forecastData);
+
+                // Check if the response is OK
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorBody}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Convert Markdown to HTML using marked.js
+                document.getElementById("aiObservations").innerHTML = marked.parse(data.observation);
+
+            } catch (error) {
+                console.error("Error fetching AI observations:", error);
+                document.getElementById("aiObservations").innerHTML = `
+            <div style="color: red;">
+                <strong>Error Fetching AI Insights:</strong>
+                <p>${error.message}</p>
+                <small>Please check your backend server and API configuration.</small>
+            </div>
+        `;
+            } finally {
+                // Hide loading indicator and show results
+                loadingSpinner.style.display = "none";
+                aiObservationsDiv.style.display = "block";
+            }
+        }
+
+        function showSuccessMessage() {
+            const messageBox = document.getElementById("successMessage");
+            messageBox.style.display = "block";
+            messageBox.style.opacity = "1";
+
+            // Fade out after 2 seconds
+            setTimeout(() => {
+                let fadeEffect = setInterval(() => {
+                    if (!messageBox.style.opacity) {
+                        messageBox.style.opacity = "1";
+                    }
+                    if (messageBox.style.opacity > 0) {
+                        messageBox.style.opacity -= 0.05;
+                    } else {
+                        clearInterval(fadeEffect);
+                        messageBox.style.display = "none";
+                    }
+                }, 50);
+            }, 2000);
+        }
+
+        function createQuarterlyBarChart() {
+            const forecastRows = document.querySelectorAll("#forecastTable tbody tr");
+            const quarters = ['Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4', 'Q1', 'Q2', 'Q3', 'Q4'];
+            const projectCosts = Array(20).fill(0);
+            const netProfitLoss = Array(20).fill(0);
+
+            forecastRows.forEach((row, yearIndex) => {
+                if (yearIndex > 4) return; // We only want 5 years of data (0-4)
+
+                const investmentCost = parseFloat(row.cells[1].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                const amcCost = parseFloat(row.cells[2].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                const netProfitLossValue = parseFloat(row.cells[7].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+
+                const startIndex = yearIndex * 4;
+
+                // Divide the yearly values equally across quarters
+                for (let q = 0; q < 4; q++) {
+                    const index = startIndex + q;
+                    projectCosts[index] = (investmentCost + amcCost) / 4;
+                    netProfitLoss[index] = netProfitLossValue / 4;
+                }
+            });
+
+            const ctx = document.getElementById('roiChart').getContext('2d');
+
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: quarters,
+                    datasets: [
+                        {
+                            label: 'Project Cost',
+                            data: projectCosts,
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Net Profit/Loss',
+                            data: netProfitLoss,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)'
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString('en-US');
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Project Cost vs Net Profit/Loss',
+                            font: {
+                                size: 18
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += '$' + context.parsed.y.toLocaleString('en-US');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+
+        // Modify the existing chart toggle event listener to include table styling and data updates
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleButton = document.getElementById('toggleChartType');
+            const chartDataTableContainer = document.querySelector('.chart-data-section');
+            const costRow = document.getElementById('costRow');
+            const profitRow = document.getElementById('profitRow');
+
+            toggleButton.addEventListener('click', function () {
+                if (currentChartType === 'line') {
+                    // Bar Chart Modifications
+                    // Destroy existing chart and create quarterly bar chart
+                    roiChart.destroy();
+                    roiChart = createQuarterlyBarChart();
+                    currentChartType = 'bar';
+
+                    // Update chart data table for bar chart
+                    while (costRow.cells.length > 1) {
+                        costRow.deleteCell(1);
+                    }
+                    while (profitRow.cells.length > 1) {
+                        profitRow.deleteCell(1);
+                    }
+
+                    const projectCosts = roiChart.data.datasets[0].data;
+                    const netProfitLoss = roiChart.data.datasets[1].data;
+
+                    costRow.textContent = 'Project Cost';
+                    profitRow.textContent = 'Money Earned/Saved';
+
+                    // Update color scheme for bar chart
+                    costRow.style.backgroundColor = 'rgba(255, 99, 132, 0.2)';
+                    profitRow.style.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+
+                    projectCosts.forEach((cost, index) => {
+                        let costCell = costRow.insertCell();
+                        costCell.textContent = '$' + Math.round(cost).toLocaleString('en-US');
+                        costCell.style.backgroundColor = 'rgba(255, 99, 132, 0.1)';
+
+                        let profitCell = profitRow.insertCell();
+                        profitCell.textContent = netProfitLoss[index] > 0 ? '$' + Math.round(netProfitLoss[index]).toLocaleString('en-US') : '$-';
+                        profitCell.style.backgroundColor = 'rgba(54, 162, 235, 0.1)';
+                    });
+
+                } else {
+                    // Line Chart Modifications
+                    // Destroy existing chart and recreate line chart
+                    roiChart.destroy();
+                    initializeChart();
+                    updateChartAndTable();
+                    currentChartType = 'line';
+
+                    // Restore original color scheme
+                    while (costRow.cells.length > 1) {
+                        costRow.deleteCell(1);
+                    }
+                    while (profitRow.cells.length > 1) {
+                        profitRow.deleteCell(1);
+                    }
+
+                    costRow.textContent = 'Cumulative Project Cost';
+                    profitRow.textContent = 'Cumulative Gain';
+
+                    // Restore default table styling
+                    costRow.style.backgroundColor = 'rgba(255, 206, 86, 0.2)';
+                    profitRow.style.backgroundColor = 'rgba(75, 192, 192, 0.2)';
+
+                    // Re-populate the data table with line chart data
+                    quarters.forEach((quarter, index) => {
+                        let costCell = costRow.insertCell();
+                        costCell.textContent = '$' + Math.round(costData[index]).toLocaleString('en-US');
+
+                        let profitCell = profitRow.insertCell();
+                        profitCell.textContent = profitData[index] > 0 ? '$' + Math.round(profitData[index]).toLocaleString('en-US') : '$-';
+                    });
+                }
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>
