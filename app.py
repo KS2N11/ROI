@@ -5,26 +5,34 @@ from openai import AzureOpenAI
 import os
 from dotenv import load_dotenv
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins in production
-
-# Frontend configuration modification
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://roi-3dqo.onrender.com')
-
-# Load environment variables
+# Load environment variables first
 load_dotenv()
 
-# Azure OpenAI Configuration
-AZURE_OPENAI_API_KEY = os.getenv('AZURE_OPENAI_API_KEY')
-AZURE_OPENAI_ENDPOINT = os.getenv('AZURE_OPENAI_ENDPOINT')
-AZURE_DEPLOYMENT_NAME = os.getenv('AZURE_DEPLOYMENT_NAME')
-AZURE_API_VERSION = os.getenv('AZURE_API_VERSION')
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Validate critical environment variables
+REQUIRED_ENVS = [
+    'AZURE_OPENAI_API_KEY', 
+    'AZURE_OPENAI_ENDPOINT', 
+    'AZURE_DEPLOYMENT_NAME', 
+    'AZURE_API_VERSION'
+]
+
+# Check for missing environment variables
+missing_envs = [env for env in REQUIRED_ENVS if not os.getenv(env)]
+if missing_envs:
+    raise ValueError(f"Missing required environment variables: {', '.join(missing_envs)}")
+
+# Frontend configuration with a default fallback
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://your-default-frontend-url.com')
+
+# Azure OpenAI Configuration
 try:
     client = AzureOpenAI(  
-        azure_endpoint=AZURE_OPENAI_ENDPOINT,  
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_API_VERSION,
+        azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT'),  
+        api_key=os.getenv('AZURE_OPENAI_API_KEY'),
+        api_version=os.getenv('AZURE_API_VERSION'),
     )
 except Exception as e:
     print(f"Error initializing Azure OpenAI client: {e}")
@@ -32,7 +40,7 @@ except Exception as e:
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('add_gain.3.html', frontend_url=FRONTEND_URL)
+    return f"ROI Calculator Backend - Frontend URL: {FRONTEND_URL}"
 
 @app.route('/generate-ai-observations', methods=['POST'])
 def generate_ai_observations():
@@ -91,12 +99,10 @@ def generate_ai_observations():
     "Break-even in Q2 of Year 2 ensures sustainable profits, while automation-driven savings boost cost efficiency long-term.**"
 )
 
-
-
         # Add error handling for OpenAI API call
         try:
             response = client.chat.completions.create(
-                model=AZURE_DEPLOYMENT_NAME,
+                model=os.getenv('AZURE_DEPLOYMENT_NAME'),
                 messages=[
                     {"role": "system", "content": "You are a financial analyst."},
                     {"role": "user", "content": prompt}
@@ -115,5 +121,10 @@ def generate_ai_observations():
         traceback.print_exc()
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
+# Add a simple health check route
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy", "message": "ROI Calculator Backend is running"}), 200
+
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
