@@ -25,7 +25,7 @@ if missing_envs:
     raise ValueError(f"Missing required environment variables: {', '.join(missing_envs)}")
 
 # Frontend configuration with a default fallback
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://your-default-frontend-url.com')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://roi-3dqo.onrender.com')
 
 # Azure OpenAI Configuration
 try:
