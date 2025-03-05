@@ -1,5 +1,5 @@
 import traceback
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from openai import AzureOpenAI
 import os
@@ -8,7 +8,9 @@ from dotenv import load_dotenv
 # Load environment variables first
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder='.',  # Serve from current directory
+            static_url_path='')
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Validate critical environment variables
@@ -24,8 +26,6 @@ missing_envs = [env for env in REQUIRED_ENVS if not os.getenv(env)]
 if missing_envs:
     raise ValueError(f"Missing required environment variables: {', '.join(missing_envs)}")
 
-# Frontend configuration with a default fallback
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://roi-3dqo.onrender.com')
 
 # Azure OpenAI Configuration
 try:
@@ -38,9 +38,16 @@ except Exception as e:
     print(f"Error initializing Azure OpenAI client: {e}")
     client = None
 
-@app.route('/', methods=['GET'])
-def index():
-    return f"ROI Calculator Backend - Frontend URL: {FRONTEND_URL}"
+# Add a route to serve the frontend HTML
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    # If no path specified or path is add_gain3.html, serve the HTML file
+    if path == "" or path == "add_gain3.html":
+        return send_from_directory('.', 'add_gain3.html')
+    
+    # Serve other static files from the current directory
+    return send_from_directory('.', path)
 
 @app.route('/generate-ai-observations', methods=['POST'])
 def generate_ai_observations():
