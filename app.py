@@ -43,8 +43,8 @@ except Exception as e:
 @app.route('/<path:path>')
 def serve_frontend(path):
     # If no path specified or path is add_gain3.html, serve the HTML file
-    if path == "" or path == "add_gain3.html":
-        return send_from_directory('.', 'add_gain3.html')
+    if path == "" or path == "add_gain.html":
+        return send_from_directory('.', 'add_gain.html')
     
     # Serve other static files from the current directory
     return send_from_directory('.', path)
@@ -62,9 +62,16 @@ def generate_ai_observations():
             return jsonify({"error": "No forecast data provided"}), 400
 
         # Validate data structure
-        required_keys = ['year', 'investment', 'amcCost', 'revenue', 'savings', 
-                         'totalRevenueSavings', 'cumulativeTotalCost', 
-                         'netProfitLoss', 'cumulativeProfitLoss']
+        required_keys = ['year',
+                        'investmentCost',
+                        'amcCost',
+                        'revenueIncrease',
+                        'costSavings',
+                        'totalRevenueAndSavings',
+                        'projectCost',
+                        'cumulativeCost',
+                        'netProfitLoss',
+                        'cumulativeGain']
         
         for entry in data:
             for key in required_keys:
@@ -73,10 +80,10 @@ def generate_ai_observations():
 
         # Format forecast data
         forecast_summary = "\n".join([
-            (f"Year {entry['year']}: Investment = ${entry['investment']:.2f}, AMC Cost = ${entry['amcCost']:.2f}, "
-             f"Revenue = ${entry['revenue']:.2f}, Cost Savings = ${entry['savings']:.2f}, Total Revenue & Savings = ${entry['totalRevenueSavings']:.2f}, "
-             f"Cumulative Cost = ${entry['cumulativeTotalCost']:.2f}, Net Profit/Loss = ${entry['netProfitLoss']:.2f}, "
-             f"Cumulative Profit/Loss = ${entry['cumulativeProfitLoss']:.2f}")
+            (f"Year {entry['year']}: Investment = ${entry['investmentCost']:.2f}, AMC Cost = ${entry['amcCost']:.2f}, "
+             f"Revenue = ${entry['revenueIncrease']:.2f}, Cost Savings = ${entry['costSavings']:.2f}, Total Revenue & Savings = ${entry['totalRevenueAndSavings']:.2f}, "
+             f"Project Cost = ${entry['projectCost']:.2f}, Cumulative Project Cost = ${entry['cumulativeCost']:.2f}, Net Profit/Loss = ${entry['netProfitLoss']:.2f}, "
+             f"Cumulative Profit/Loss = ${entry['cumulativeGain']:.2f}")
             for entry in data
         ])
 
