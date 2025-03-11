@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            /* Google blue */
+            --secondary-color: #f8f9fa;
+            --accent-color: #34a853;
+            /* Google green */
+            --danger-color: #ea4335;
+            /* Google red */
+            --warning-color: #fbbc04;
+            /* Google yellow */
+            --border-color: #dadce0;
+            --text-color: #202124;
+            --text-secondary: #5f6368;
+            --card-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin-right: 12px;
+            position: relative;
+        }
+
+        .logo-icon::after {
+            content: "%";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        nav ul li a:hover {
+            background-color: rgba(26, 115, 232, 0.1);
+            color: var(--primary-color);
+        }
+
+        nav ul li a.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        h2 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section2 {
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .section2:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+
+        .form-group {
+            flex: 1 0 200px;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+        }
+
+        select.form-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23202124' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
+
+        /* Add this to your CSS file */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("path-to-your-custom-arrow.svg");
+            /* Optional: add your custom arrow */
+            background-position: right 0.5em center;
+            background-repeat: no-repeat;
+            background-size: 0.8em;
+            padding-right: 1.5em;
+            /* Make room for the arrow */
+        }
+
+        /* For IE */
+        select::-ms-expand {
+            display: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            background-color: #1765cc;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn-add {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 16px;
+        }
+
+        .btn-add:hover {
+            background-color: rgba(26, 115, 232, 0.1);
+            box-shadow: none;
+        }
+
+        .btn-generate {
+            background-color: var(--accent-color);
+            padding: 12px 24px;
+        }
+
+        .btn-generate:hover {
+            background-color: #2d9447;
+        }
+
+        .btn-switch {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            margin-bottom: 16px;
+        }
+
+        .btn-switch:hover {
+            background-color: rgba(26, 115, 232, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f3f4;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        .summary-row {
+            font-weight: 500;
+            background-color: #f8fafb;
+        }
+
+        .slider-container {
+            margin-top: 24px;
+        }
+
+        .slider-group {
+            margin-bottom: 16px;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .slider {
+            flex: 1;
+            margin-right: 16px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            transition: background 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: #1765cc;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .slider-value {
+            width: 60px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 24px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .edit-btn,
+        .delete-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .edit-btn {
+            background-color: #FFC107;
+            margin-right: 5px;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+        }
+
+        .two-columns {
+            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .column {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            flex: 1;
+            min-width: 300px;
+            margin-bottom: 20px;
+        }
+
+        .input-fields-container {
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            margin-top: 12px;
+            padding: 12px 16px;
+            border-radius: 4px;
+            text-align: left;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .message::before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        .success {
+            background-color: #e6f4ea;
+            color: #137333;
+            border-left: 4px solid #34a853;
+        }
+
+        .success::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2334a853'%3E%3Cpath d='M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z'/%3E%3C/svg%3E");
+        }
+
+        .error {
+            background-color: #fce8e6;
+            color: #c5221f;
+            border-left: 4px solid #ea4335;
+        }
+
+        .error::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ea4335'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+        }
+
+        .dynamic-fields {
+            margin-top: 15px;
+        }
+
+        .col-revenue {
+            color: var(--accent-color);
+        }
+
+        .col-cost {
+            color: var(--danger-color);
+        }
+
+        .footnote {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Responsive adjustment */
+        @media (max-width: 768px) {
+            .two-columns {
+                flex-direction: column;
+            }
+
+            .column {
+                min-width: 100%;
+            }
+        }
+
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            text-align: right;
+        }
+
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f3f4;
+            z-index: 10;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .data-table tr:first-child th {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tbody th {
+            text-align: left;
+            font-weight: normal;
+            background-color: #f8f9fa;
+        }
+
+        /* Style for cumulative cost row */
+        #cumulative-cost-row {
+            background-color: rgba(234, 67, 53, 0.05);
+            color: var(--danger-color);
+        }
+
+        /* Style for cumulative gain row */
+        #cumulative-gain-row {
+            background-color: rgba(52, 168, 83, 0.05);
+            color: var(--accent-color);
+        }
+
+        /* Style for project cost row */
+        #project-cost-row {
+            background-color: rgba(234, 67, 53, 0.05);
+        }
+
+        /* Style for net profit row */
+        #net-profit-row {
+            background-color: rgba(52, 168, 83, 0.05);
+        }
+
+        #add-gain-btn {
+            margin-left: 10px;
+        }
+
+        #loadingSpinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+            color: var(--text-secondary);
+        }
+
+        #loadingSpinner::before {
+            content: "";
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--primary-color);
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            margin-right: 12px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #ai {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        #ai h2 {
+            background-color: #f1f3f4;
+            padding: 16px 24px;
+            margin: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #aiObservations {
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        #aiObservations p {
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                ROI Calculator
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Home</a></li>
+                    <li><a href="#">ROI Calculator</a></li>
+                    <li><a href="#">Reports</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Wrap your existing sections in a container with two columns -->
+        <div class="section">
+            <div class="two-columns">
+                <!-- Your existing Project Costs block - no changes to the inside content -->
+                <div class="column">
+                    <!-- Keep all your existing Project Costs content here unchanged -->
+                    <div class="section-title">Project Costs</div>
+                    <!-- All your existing form groups remain unchanged -->
+                    <div class="form-group">
+                        <label for="upfront-cost">Upfront Cost ($)</label>
+                        <input type="number" id="upfront-cost" class="form-control" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="project-duration">Project Duration (Months)</label>
+                        <input type="number" id="project-duration" class="form-control" min="1" max="60" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="monthly-cost">Monthly Recurring Cost ($)</label>
+                        <input type="number" id="monthly-cost" class="form-control" min="0" step="1">
+                    </div>
+                    <div id="project-cost-message" class="message"></div>
+                </div>
+
+                <!-- Your existing Gains block - no changes to the inside content -->
+                <div class="column">
+                    <!-- Keep all your existing Gains content here unchanged -->
+                    <div class="section-title">Gains</div>
+                    <!-- All your existing form groups remain unchanged -->
+                    <div class="form-group">
+                        <label for="gain-type">Select Gain Type</label>
+                        <select id="gain-type" class="form-control" disabled>
+                            <option value="">Select a Gain</option>
+                            <option value="Saves Costs">Saves Costs</option>
+                            <option value="Speeds Up GTM">Speeds Up GTM</option>
+                            <option value="Improves Customer Service">Improves Customer Service</option>
+                            <option value="Gives Competitive Advantage">Gives Competitive Advantage</option>
+                            <option value="Improves Employee Satisfaction">Improves Employee Satisfaction</option>
+                            <option value="Maximizes Customer Lifetime Value">Maximizes Customer Lifetime Value</option>
+                            <option value="Improving Operational Efficiency">Improving Operational Efficiency</option>
+                            <option value="Enhancing Cybersecurity">Enhancing Cybersecurity</option>
+                            <option value="Migrating to Cloud">Migrating to Cloud</option>
+                            <option value="Enabling Data-Driven Decisions">Enabling Data-Driven Decisions</option>
+                            <option value="Optimizing Costs">Optimizing Costs</option>
+                            <option value="Enhancing Customer Experience">Enhancing Customer Experience</option>
+                            <option value="Automating Repetitive Tasks">Automating Repetitive Tasks</option>
+                            <option value="Ensuring Compliance">Ensuring Compliance</option>
+                            <option value="Integrating Legacy Systems">Integrating Legacy Systems</option>
+                            <option value="Improving Agility">Improving Agility</option>
+                        </select>
+                    </div>
+                    <div id="dynamic-fields" class="dynamic-fields"></div>
+                    <button id="add-gain-btn" class="btn btn-add" disabled>+ Add Gain</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="summary-section" class="section hidden">
+            <div class="section2">
+                <h2>Gains Summary</h2>
+                <div class="table-container">
+                    <table id="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Gain</th>
+                                <th>Increase in Revenue ($)</th>
+                                <th>Cost Saving ($)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-body">
+                        </tbody>
+                        <tfoot>
+                            <tr class="summary-row">
+                                <td>Total</td>
+                                <td id="total-revenue">0</td>
+                                <td id="total-savings">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section2">
+                <h2>Financial Projections</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="revenue-growth">Expected Revenue Growth Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="revenue-growth" class="slider form-control" min="0" max="100"
+                                value="5" step="0.5">
+                            <span id="revenue-growth-value" class="slider-value">5%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="amc-growth">Expected AMC Increase Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="amc-growth" class="slider form-control" min="0" max="100" value="3"
+                                step="0.5">
+                            <span id="amc-growth-value" class="slider-value">3%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cost-savings-growth">Expected Cost Savings Growth Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="cost-savings-growth" class="slider form-control" min="0" max="100"
+                                value="2" step="0.5">
+                            <span id="cost-savings-growth-value" class="slider-value">2%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button id="generate-btn" class="btn btn-generate btn-block">Generate ROI Chart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="roi-analysis" class="section hidden">
+            <div class="section2">
+                <h2>ROI Analysis</h2>
+                <button id="switch-chart-btn" class="btn btn-switch">Switch Chart Type</button>
+
+                <div id="chart-container-project-roi" class="chart-container">
+                    <canvas id="project-roi-chart"></canvas>
+                </div>
+
+                <div id="chart-container-cost-vs-profit" class="chart-container hidden">
+                    <canvas id="cost-vs-profit-chart"></canvas>
+                </div>
+
+                <div id="project-roi-table-container" class="table-container hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th colspan="4">Year 0</th>
+                                <th colspan="4">Year 1</th>
+                                <th colspan="4">Year 2</th>
+                                <th colspan="4">Year 3</th>
+                                <th colspan="4">Year 4</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="cumulative-cost-row">
+                                <th>Cumulative Project Cost</th>
+                                <!-- Data will be filled dynamically -->
+                            </tr>
+                            <tr id="cumulative-gain-row">
+                                <th>Cumulative Gain</th>
+                                <!-- Data will be filled dynamically -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="cost-vs-profit-table-container" class="table-container hidden">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th colspan="4">Year 0</th>
+                                <th colspan="4">Year 1</th>
+                                <th colspan="4">Year 2</th>
+                                <th colspan="4">Year 3</th>
+                                <th colspan="4">Year 4</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                                <th>Q1</th>
+                                <th>Q2</th>
+                                <th>Q3</th>
+                                <th>Q4</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="project-cost-row">
+                                <th>Project Cost</th>
+                                <!-- Data will be filled dynamically -->
+                            </tr>
+                            <tr id="net-profit-row">
+                                <th>Net Profit/Loss</th>
+                                <!-- Data will be filled dynamically -->
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section2 hidden" id="ai">
+            <h2>AI-Generated Observations</h2>
+            <div id="loadingSpinner" style="display: none; padding: 25px;">
+                🔄 Fetching AI Insights...
+            </div>
+            <div id="aiObservations" style="padding: 25px;"></div>
+        </div>
+
+        <div class="section2 hidden" id="roi-table">
+            <div class="table-container">
+                <h2>ROI Chart</h2>
+                <table id="roi-table">
+                    <thead id="roi-table-head"></thead>
+                    <tbody id="roi-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Gain data structure
+            const gainsData = {
+                "Saves Costs": ["Total Hours Saved Monthly", "Hourly Wage ($)"],
+                "Speeds Up GTM": ["Projected Sales per Period ($)", "Number of Periods Gained", "Cost of Launching Earlier ($)"],
+                "Improves Customer Service": ["Increased Customer Retention Rate (%)", "Total Revenue from Retained Customers ($)", "Cost of Customer Satisfaction Initiatives ($)"],
+                "Gives Competitive Advantage": ["Premium Pricing (Per Customer) ($)", "Projected Sales Volume"],
+                "Improves Employee Satisfaction": ["Turnover Rate Reduction (%)", "Average Cost of Turnover ($)", "Productivity Increase (%)", "Average Salary ($)", "Number of Employees"],
+                "Maximizes Customer Lifetime Value": ["Average Purchase Value ($)", "Purchase Frequency", "Customer Lifespan"],
+                "Improving Operational Efficiency": ["Labor Cost Savings ($)", "Increased Productivity Value ($)", "Investment Cost A ($)"],
+                "Enhancing Cybersecurity": ["Estimated Losses Avoided ($)", "Investment Cost B ($)"],
+                "Migrating to Cloud": ["Infrastructure Savings ($)", "Agility Benefits ($)", "Migration Cost ($)"],
+                "Enabling Data-Driven Decisions": ["Incremental Revenue from Data Insights ($)", "Investment Cost C ($)"],
+                "Optimizing Costs": ["Cost Savings Identified and Realized ($)", "Cost of Optimization ($)"],
+                "Enhancing Customer Experience": ["Increased Revenue from Customer Retention ($)", "New Customer Revenue ($)", "Investment Cost D ($)"],
+                "Automating Repetitive Tasks": ["Labor Cost Savings ($)", "Reduced Error Costs ($)", "Automation Investment ($)"],
+                "Ensuring Compliance": ["Avoided Penalties and Fines ($)", "Cost Savings from Compliance Automation ($)", "Compliance Costs ($)"],
+                "Integrating Legacy Systems": ["Extended System Lifespan Value ($)", "Improved Efficiency ($)", "Integration Costs ($)"],
+                "Improving Agility": ["Revenue from Faster Adaptation to Market ($)", "Increased Innovation ROI ($)", "Investment Cost E ($)"]
+            };
+
+            // DOM Elements
+            const upfrontCostInput = document.getElementById('upfront-cost');
+            const projectDurationInput = document.getElementById('project-duration');
+            const monthlyCostInput = document.getElementById('monthly-cost');
+            const gainTypeSelect = document.getElementById('gain-type');
+            const dynamicFieldsContainer = document.getElementById('dynamic-fields');
+            const addGainBtn = document.getElementById('add-gain-btn');
+            const generateBtn = document.getElementById('generate-btn');
+            const summarySection = document.getElementById('summary-section');
+            const summaryTableBody = document.getElementById('summary-body');
+            const totalRevenueCell = document.getElementById('total-revenue');
+            const totalSavingsCell = document.getElementById('total-savings');
+            const revenueGrowthSlider = document.getElementById('revenue-growth');
+            const amcGrowthSlider = document.getElementById('amc-growth');
+            const costSavingsGrowthSlider = document.getElementById('cost-savings-growth');
+            const revenueGrowthValue = document.getElementById('revenue-growth-value');
+            const amcGrowthValue = document.getElementById('amc-growth-value');
+            const costSavingsGrowthValue = document.getElementById('cost-savings-growth-value');
+            const projectCostMessage = document.getElementById('project-cost-message');
+            const roiAnalysisSection = document.getElementById('roi-analysis');
+            const roiTable = document.getElementById('roi-table');
+            const switchChartBtn = document.getElementById('switch-chart-btn');
+            const projectRoiChartContainer = document.getElementById('chart-container-project-roi');
+            const costVsProfitChartContainer = document.getElementById('chart-container-cost-vs-profit');
+            const roiTableHead = document.getElementById('roi-table-head');
+            const roiTableBody = document.getElementById('roi-table-body');
+            const projectRoiTableContainer = document.getElementById('project-roi-table-container');
+            const costVsProfitTableContainer = document.getElementById('cost-vs-profit-table-container');
+            const aiSection = document.getElementById('ai')
+
+            // Charts
+            let projectRoiChart;
+            let costVsProfitChart;
+
+            // Data storage
+            let summaryData = [];
+            let editingIndex = -1;
+
+            // Check if project costs are complete
+            function checkProjectCosts() {
+                const upfrontCost = upfrontCostInput.value;
+                const projectDuration = projectDurationInput.value;
+                const monthlyCost = monthlyCostInput.value;
+
+                if (upfrontCost !== '' && projectDuration !== '' && monthlyCost !== '') {
+                    gainTypeSelect.disabled = false;
+                    projectCostMessage.textContent = 'Project costs added successfully! Now you can add gains.';
+                    projectCostMessage.className = 'message success';
+                } else {
+                    gainTypeSelect.disabled = true;
+                    addGainBtn.disabled = true;
+                    projectCostMessage.textContent = 'Please fill all project cost fields to proceed.';
+                    projectCostMessage.className = 'message error';
+                }
+            }
+
+            // Generate dynamic fields based on selected gain type
+            function generateDynamicFields() {
+                const selectedGain = gainTypeSelect.value;
+                if (!selectedGain) {
+                    dynamicFieldsContainer.innerHTML = '';
+                    addGainBtn.disabled = true;
+                    return;
+                }
+
+                const fields = gainsData[selectedGain];
+                let html = '';
+
+                fields.forEach(field => {
+                    const fieldId = field.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+                    html += `
+                        <div class="form-group">
+                            <label for="${fieldId}">${field}</label>
+                            <input type="number" id="${fieldId}" class="form-control dynamic-field" min="0" step="0.01">
+                        </div>
+                    `;
+                });
+
+                dynamicFieldsContainer.innerHTML = html;
+                addGainBtn.disabled = false;
+            }
+
+            // Calculate gain values based on selected gain type
+            function calculateGainValues() {
+                const selectedGain = gainTypeSelect.value;
+                let increaseRevenue = 0;
+                let costSaving = 0;
+
+                // Get all field values
+                const fieldInputs = document.querySelectorAll('.dynamic-field');
+                const values = {};
+
+                fieldInputs.forEach(input => {
+                    const id = input.id;
+                    // Parse as float and default to 0 if NaN
+                    values[id] = parseFloat(input.value) || 0;
+                });
+
+                const projectDuration = parseInt(projectDurationInput.value) || 0;
+
+                // Calculate based on gain type
+                try {
+                    switch (selectedGain) {
+                        case "Saves Costs":
+                            costSaving = values["total-hours-saved-monthly"] * values["hourly-wage-"] * projectDuration;
+                            break;
+
+                        case "Speeds Up GTM":
+                            increaseRevenue = (values["projected-sales-per-period-"] * values["number-of-periods-gained"]) - values["cost-of-launching-earlier-"];
+                            break;
+
+                        case "Improves Customer Service":
+                            costSaving = (values["total-revenue-from-retained-customers-"] * (values["increased-customer-retention-rate-"] / 100)) - values["cost-of-customer-satisfaction-initiatives-"];
+                            break;
+
+                        case "Gives Competitive Advantage":
+                            increaseRevenue = values["premium-pricing-per-customer-"] * values["projected-sales-volume"];
+                            break;
+
+                        case "Improves Employee Satisfaction":
+                            costSaving = ((values["turnover-rate-reduction-"] / 100) * values["average-cost-of-turnover-"] * (values["productivity-increase-"] / 100)) + (values["average-salary-"] * values["number-of-employees"]);
+                            break;
+
+                        case "Maximizes Customer Lifetime Value":
+                            increaseRevenue = values["average-purchase-value-"] * values["purchase-frequency"] * values["customer-lifespan"];
+                            break;
+
+                        case "Improving Operational Efficiency":
+                            costSaving = (values["labor-cost-savings-"] + values["increased-productivity-value-"]) - values["investment-cost-a-"];
+                            break;
+
+                        case "Enhancing Cybersecurity":
+                            costSaving = values["estimated-losses-avoided-"] - values["investment-cost-b-"];
+                            break;
+
+                        case "Migrating to Cloud":
+                            costSaving = (values["infrastructure-savings-"] + values["agility-benefits-"]) - values["migration-cost-"];
+                            break;
+
+                        case "Enabling Data-Driven Decisions":
+                            increaseRevenue = values["incremental-revenue-from-data-insights-"] - values["investment-cost-c-"];
+                            break;
+
+                        case "Optimizing Costs":
+                            costSaving = values["cost-savings-identified-and-realized-"] - values["cost-of-optimization-"];
+                            break;
+
+                        case "Enhancing Customer Experience":
+                            increaseRevenue = (values["increased-revenue-from-customer-retention-"] + values["new-customer-revenue-"]) - values["investment-cost-d-"];
+                            break;
+
+                        case "Automating Repetitive Tasks":
+                            costSaving = (values["labor-cost-savings-"] + values["reduced-error-costs-"]) - values["automation-investment-"];
+                            break;
+
+                        case "Ensuring Compliance":
+                            costSaving = (values["avoided-penalties-and-fines-"] + values["cost-savings-from-compliance-automation-"]) - values["compliance-costs-"];
+                            break;
+
+                        case "Integrating Legacy Systems":
+                            costSaving = (values["extended-system-lifespan-value-"] + values["improved-efficiency-"]) - values["integration-costs-"];
+                            break;
+
+                        case "Improving Agility":
+                            increaseRevenue = (values["revenue-from-faster-adaptation-to-market-"] + values["increased-innovation-roi-"]) - values["investment-cost-e-"];
+                            break;
+
+                        default:
+                            console.log("Unhandled gain type:", selectedGain);
+                    }
+
+                } catch (error) {
+                    console.error("Error calculating values:", error);
+                }
+
+                return {
+                    gain: selectedGain,
+                    increaseRevenue: increaseRevenue,
+                    costSaving: costSaving,
+                    values: values
+                };
+            }
+
+            // Add gain to summary table
+            function addGainToSummary() {
+                if (!validateDynamicFields()) {
+                    alert('Please fill all fields for the selected gain.');
+                    return;
+                }
+
+                const gainData = calculateGainValues();
+
+                if (editingIndex >= 0) {
+                    // Update existing gain
+                    summaryData[editingIndex] = gainData;
+                    editingIndex = -1;
+                } else {
+                    // Add new gain
+                    summaryData.push(gainData);
+                }
+
+                updateSummaryTable();
+                resetGainFields();
+                summarySection.classList.remove('hidden');
+            }
+
+            // Validate that all dynamic fields are filled
+            function validateDynamicFields() {
+                const fields = document.querySelectorAll('.dynamic-field');
+                for (let field of fields) {
+                    if (field.value === '') {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // Update the summary table
+            function updateSummaryTable() {
+                summaryTableBody.innerHTML = '';
+                let totalRevenue = 0;
+                let totalSavings = 0;
+
+                summaryData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+
+                    const gainCell = document.createElement('td');
+                    gainCell.textContent = item.gain;
+
+                    const revenueCell = document.createElement('td');
+                    revenueCell.textContent = formatCurrency(item.increaseRevenue);
+                    totalRevenue += item.increaseRevenue;
+
+                    const savingCell = document.createElement('td');
+                    savingCell.textContent = formatCurrency(item.costSaving);
+                    totalSavings += item.costSaving;
+
+                    const actionsCell = document.createElement('td');
+
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn edit-btn';
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => editGain(index));
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn delete-btn';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', () => deleteGain(index));
+
+                    actionsCell.appendChild(editBtn);
+                    actionsCell.appendChild(deleteBtn);
+
+                    row.appendChild(gainCell);
+                    row.appendChild(revenueCell);
+                    row.appendChild(savingCell);
+                    row.appendChild(actionsCell);
+
+                    summaryTableBody.appendChild(row);
+                });
+
+                totalRevenueCell.textContent = formatCurrency(totalRevenue);
+                totalSavingsCell.textContent = formatCurrency(totalSavings);
+            }
+
+            // Reset gain fields after adding
+            function resetGainFields() {
+                gainTypeSelect.value = '';
+                dynamicFieldsContainer.innerHTML = '';
+                addGainBtn.disabled = true;
+            }
+
+            // Edit a gain
+            function editGain(index) {
+                const item = summaryData[index];
+                gainTypeSelect.value = item.gain;
+                generateDynamicFields();
+
+                // Set values in fields
+                setTimeout(() => {
+                    const fieldInputs = document.querySelectorAll('.dynamic-field');
+                    fieldInputs.forEach(input => {
+                        const fieldName = input.id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        if (item.values[fieldName] !== undefined) {
+                            input.value = item.values[fieldName];
+                        }
+                    });
+
+                    addGainBtn.textContent = 'Update Gain';
+                    editingIndex = index;
+                }, 100);
+            }
+
+            // Delete a gain
+            function deleteGain(index) {
+                if (confirm('Are you sure you want to delete this gain?')) {
+                    summaryData.splice(index, 1);
+                    updateSummaryTable();
+
+                    if (summaryData.length === 0) {
+                        summarySection.classList.add('hidden');
+                    }
+                }
+            }
+
+            // Ensure we have a proper formatCurrency function
+            function formatCurrency(amount) {
+                // Handle NaN or undefined
+                if (isNaN(amount) || amount === undefined) {
+                    console.warn("Invalid amount for formatting:", amount);
+                    amount = 0;
+                }
+
+                return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            }
+
+            // Generate ROI forecast
+            function generateROIForecast() {
+                if (summaryData.length === 0) {
+                    alert('Please add at least one gain to generate the ROI forecast.');
+                    return;
+                }
+
+                const upfrontCost = parseFloat(upfrontCostInput.value) || 0;
+                const projectDuration = parseInt(projectDurationInput.value) || 0;
+                const monthlyCost = parseFloat(monthlyCostInput.value) || 0;
+                const revenueGrowth = parseFloat(revenueGrowthSlider.value) / 100;
+                const amcGrowth = parseFloat(amcGrowthSlider.value) / 100;
+                const costSavingsGrowth = parseFloat(costSavingsGrowthSlider.value) / 100;
+
+                // Calculate totals from summary
+                let totalRevenue = 0;
+                let totalSavings = 0;
+
+                summaryData.forEach(item => {
+                    totalRevenue += item.increaseRevenue;
+                    // Continue from where the code left off
+                    totalRevenue += item.increaseRevenue;
+                    totalSavings += item.costSaving;
+                });
+
+                // Calculate ROI data for 5 years (0-4)
+                const roiData = [];
+                const quarterlyData = {
+                    labels: [],
+                    cumulativeCost: [],
+                    cumulativeGain: []
+                };
+
+                const costVsProfitData = {
+                    labels: [],
+                    projectCost: [],
+                    netProfit: []
+                };
+
+                // Initial values
+                let cumulativeCost = 0;
+                let cumulativeGain = 0;
+
+                for (let year = 0; year <= 4; year++) {
+                    // Calculate the investment cost (upfront cost only in year 0)
+                    const investmentCost = year === 0 ? upfrontCost : 0;
+
+                    // Calculate AMC cost based on project duration
+                    let amcCost = 0;
+                    if (year === 0) {
+                        // In year 0, AMC is applied only for months after project completion
+                        const monthsAfterCompletion = Math.max(0, 12 - projectDuration);
+                        amcCost = monthlyCost * monthsAfterCompletion;
+                    } else {
+                        // In subsequent years, AMC is applied for the whole year with yearly growth
+                        amcCost = monthlyCost * 12 * Math.pow(1 + amcGrowth, year);
+                    }
+
+                    // Calculate revenue increase with yearly growth
+                    const revenueIncrease = totalRevenue * Math.pow(1 + revenueGrowth, year);
+
+                    // Calculate cost savings with yearly growth
+                    const costSavings = totalSavings * Math.pow(1 + costSavingsGrowth, year);
+
+                    // Total revenue and savings
+                    const totalRevenueAndSavings = revenueIncrease + costSavings;
+
+                    // Project cost for the year
+                    const projectCost = investmentCost + amcCost;
+
+                    // Update cumulative cost
+                    cumulativeCost += projectCost;
+
+                    // Net profit/loss for the year
+                    const netProfitLoss = totalRevenueAndSavings - projectCost;
+
+                    // Update cumulative gain
+                    cumulativeGain += netProfitLoss;
+
+                    // Add data to ROI array
+                    roiData.push({
+                        year,
+                        investmentCost,
+                        amcCost,
+                        revenueIncrease,
+                        costSavings,
+                        totalRevenueAndSavings,
+                        projectCost,
+                        cumulativeCost,
+                        netProfitLoss,
+                        cumulativeGain
+                    });
+
+                    // Generate quarterly data for charts
+                    for (let quarter = 1; quarter <= 4; quarter++) {
+                        const quarterLabel = `Y${year}Q${quarter}`;
+                        quarterlyData.labels.push(quarterLabel);
+
+                        // Interpolate values for quarters
+                        const quarterlyFactor = (quarter - 0.5) / 4;
+
+                        if (year === 0 && quarter === 1) {
+                            // First quarter of first year
+                            quarterlyData.cumulativeCost.push(projectCost / 4);
+                            quarterlyData.cumulativeGain.push(totalRevenueAndSavings / 4);
+
+                            costVsProfitData.labels.push(quarterLabel);
+                            costVsProfitData.projectCost.push(projectCost / 4);
+                            costVsProfitData.netProfit.push((totalRevenueAndSavings - projectCost) / 4);
+                        } else {
+                            // Subsequent quarters
+                            const prevYearData = year > 0 ? roiData[year - 1] : { cumulativeCost: 0, cumulativeGain: 0 };
+                            const currentYearData = roiData[year];
+
+                            const interpolatedCost = prevYearData.cumulativeCost +
+                                (currentYearData.cumulativeCost - prevYearData.cumulativeCost) *
+                                (quarter / 4);
+
+                            const interpolatedGain = prevYearData.cumulativeGain +
+                                (currentYearData.cumulativeGain - prevYearData.cumulativeGain) *
+                                (quarter / 4);
+
+                            quarterlyData.cumulativeCost.push(interpolatedCost);
+                            quarterlyData.cumulativeGain.push(interpolatedGain);
+
+                            costVsProfitData.labels.push(quarterLabel);
+                            costVsProfitData.projectCost.push(projectCost / 4);
+                            costVsProfitData.netProfit.push(netProfitLoss / 4);
+                        }
+                    }
+                }
+
+                // Generate ROI table
+                generateROITable(roiData);
+
+                // Generate ROI charts
+                generateROICharts(quarterlyData, costVsProfitData);
+
+                fetchAIObservations();
+
+                // Scroll down to the chart after generating the forecast
+                setTimeout(() => {
+                    let chartContainer = document.getElementById("roi-analysis");
+                    if (chartContainer) {
+                        chartContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+                    } else {
+                        console.error("Chart container not found!");
+                    }
+                },);
+
+                // Show ROI analysis section
+                roiAnalysisSection.classList.remove('hidden');
+                aiSection.classList.remove('hidden');
+                projectRoiTableContainer.classList.remove('hidden');
+                roiTable.classList.remove('hidden');
+            }
+
+            async function fetchAIObservations() {
+                const forecastRows = document.querySelectorAll("#roi-table tbody tr");
+                if (forecastRows.length === 0) return;
+
+                let forecastData = [];
+                forecastRows.forEach(row => {
+                    let year = row.cells[0].textContent;
+                    let investmentCost = parseFloat(row.cells[1].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let amcCost = parseFloat(row.cells[2].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let revenueIncrease = parseFloat(row.cells[3].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let costSavings = parseFloat(row.cells[4].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let totalRevenueAndSavings = parseFloat(row.cells[5].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let projectCost = parseFloat(row.cells[6].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let cumulativeCost = parseFloat(row.cells[7].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let netProfitLoss = parseFloat(row.cells[8].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let cumulativeGain = parseFloat(row.cells[9].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+
+                    forecastData.push({
+                        year,
+                        investmentCost,
+                        amcCost,
+                        revenueIncrease,
+                        costSavings,
+                        totalRevenueAndSavings,
+                        projectCost,
+                        cumulativeCost,
+                        netProfitLoss,
+                        cumulativeGain
+                    });
+                });
+
+                const aiObservationsDiv = document.getElementById("aiObservations");
+                const loadingSpinner = document.getElementById("loadingSpinner");
+
+                // Show loading indicator
+                aiObservationsDiv.style.display = "none";
+                loadingSpinner.style.display = "block";
+
+                try {
+                    const response = await fetch('http://127.0.0.1:5000/generate-ai-observations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ forecastData })
+                    });
+
+                    console.log(forecastData);
+
+                    // Check if the response is OK
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorBody}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    // Convert Markdown to HTML using marked.js
+                    document.getElementById("aiObservations").innerHTML = marked.parse(data.observation);
+
+                } catch (error) {
+                    console.error("Error fetching AI observations:", error);
+                    document.getElementById("aiObservations").innerHTML = `
+            <div style="color: red;">
+                <strong>Error Fetching AI Insights:</strong>
+                <p>${error.message}</p>
+                <small>Please check your backend server and API configuration.</small>
+            </div>
+        `;
+                } finally {
+                    // Hide loading indicator and show results
+                    loadingSpinner.style.display = "none";
+                    aiObservationsDiv.style.display = "block";
+                }
+            }
+
+            // Generate ROI table
+            function generateROITable(roiData) {
+                // Generate table header
+                roiTableHead.innerHTML = `
+                    <tr>
+                        <th>Year</th>
+                        <th>Investment Cost ($)</th>
+                        <th>AMC Cost ($)</th>
+                        <th>Increase in Revenue ($)</th>
+                        <th>Cost Savings ($)</th>
+                        <th>Total Revenue & Savings ($)</th>
+                        <th>Project Cost ($)</th>
+                        <th>Cumulative Project Cost ($)</th>
+                        <th>Net Profit/Loss ($)</th>
+                        <th>Cumulative Gain ($)</th>
+                    </tr>
+                `;
+
+                // Generate table body
+                roiTableBody.innerHTML = '';
+
+                roiData.forEach(data => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${data.year}</td>
+                        <td>${formatCurrency(data.investmentCost)}</td>
+                        <td>${formatCurrency(data.amcCost)}</td>
+                        <td class="col-revenue">${formatCurrency(data.revenueIncrease)}</td>
+                        <td class="col-revenue">${formatCurrency(data.costSavings)}</td>
+                        <td class="col-revenue">${formatCurrency(data.totalRevenueAndSavings)}</td>
+                        <td class="col-cost">${formatCurrency(data.projectCost)}</td>
+                        <td class="col-cost">${formatCurrency(data.cumulativeCost)}</td>
+                        <td class="${data.netProfitLoss >= 0 ? 'col-revenue' : 'col-cost'}">${formatCurrency(data.netProfitLoss)}</td>
+                        <td class="${data.cumulativeGain >= 0 ? 'col-revenue' : 'col-cost'}">${formatCurrency(data.cumulativeGain)}</td>
+                    `;
+
+                    roiTableBody.appendChild(row);
+                });
+            }
+
+            // Generate ROI charts
+            function generateROICharts(quarterlyData, costVsProfitData) {
+                // Destroy previous charts if they exist
+                if (projectRoiChart) {
+                    projectRoiChart.destroy();
+                }
+
+                if (costVsProfitChart) {
+                    costVsProfitChart.destroy();
+                }
+
+                // Create Project ROI chart (line chart)
+                const projectRoiCtx = document.getElementById('project-roi-chart').getContext('2d');
+                projectRoiChart = new Chart(projectRoiCtx, {
+                    type: 'line',
+                    data: {
+                        labels: quarterlyData.labels,
+                        datasets: [
+                            {
+                                label: 'Cumulative Project Cost',
+                                data: quarterlyData.cumulativeCost,
+                                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                borderColor: 'rgba(244, 67, 54, 1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Cumulative Gain',
+                                data: quarterlyData.cumulativeGain,
+                                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                                borderColor: 'rgba(76, 175, 80, 1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Project ROI Over Time',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.dataset.label + ': $' + context.raw.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return '$' + value.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&,');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Create Cost vs Profit chart (bar chart)
+                const costVsProfitCtx = document.getElementById('cost-vs-profit-chart').getContext('2d');
+                costVsProfitChart = new Chart(costVsProfitCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: costVsProfitData.labels,
+                        datasets: [
+                            {
+                                label: 'Project Cost',
+                                data: costVsProfitData.projectCost,
+                                backgroundColor: 'rgba(244, 67, 54, 0.7)',
+                                borderColor: 'rgba(244, 67, 54, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Net Profit/Loss',
+                                data: costVsProfitData.netProfit,
+                                backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                                borderColor: 'rgba(76, 175, 80, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Project Cost vs Project Gain',
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.dataset.label + ': $' + context.raw.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return '$' + value.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&,');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // After creating charts, also populate tables
+                populateROITables(quarterlyData, costVsProfitData);
+
+                // Show the first chart initially
+                projectRoiChartContainer.classList.remove('hidden');
+                costVsProfitChartContainer.classList.add('hidden');
+                document.getElementById('project-roi-table-container').classList.remove('hidden');
+                document.getElementById('cost-vs-profit-table-container').classList.add('hidden');
+            }
+
+
+            function populateROITables(quarterlyData, costVsProfitData) {
+                // Populate Project ROI table - but now in row format
+                const costRow = document.getElementById('cumulative-cost-row');
+                const gainRow = document.getElementById('cumulative-gain-row');
+
+                // Clear existing data
+                while (costRow.children.length > 1) {
+                    costRow.removeChild(costRow.lastChild);
+                }
+
+                while (gainRow.children.length > 1) {
+                    gainRow.removeChild(gainRow.lastChild);
+                }
+
+                // Add cells for each quarter
+                quarterlyData.cumulativeCost.forEach((cost, index) => {
+                    const costCell = document.createElement('td');
+                    costCell.textContent = '$' + cost.toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    });
+
+                    const gainCell = document.createElement('td');
+                    gainCell.textContent = '$' + quarterlyData.cumulativeGain[index].toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    });
+
+                    costRow.appendChild(costCell);
+                    gainRow.appendChild(gainCell);
+                });
+
+                // Populate Cost vs Profit table - also in row format
+                const projectCostRow = document.getElementById('project-cost-row');
+                const netProfitRow = document.getElementById('net-profit-row');
+
+                // Clear existing data
+                while (projectCostRow.children.length > 1) {
+                    projectCostRow.removeChild(projectCostRow.lastChild);
+                }
+
+                while (netProfitRow.children.length > 1) {
+                    netProfitRow.removeChild(netProfitRow.lastChild);
+                }
+
+                // Add cells for each quarter
+                costVsProfitData.projectCost.forEach((cost, index) => {
+                    const costCell = document.createElement('td');
+                    costCell.textContent = '$' + cost.toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    });
+
+                    const profitCell = document.createElement('td');
+                    profitCell.textContent = '$' + costVsProfitData.netProfit[index].toLocaleString('en-US', {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    });
+
+                    projectCostRow.appendChild(costCell);
+                    netProfitRow.appendChild(profitCell);
+                });
+            }
+
+
+
+            // Event Listeners
+            upfrontCostInput.addEventListener('input', checkProjectCosts);
+            projectDurationInput.addEventListener('input', checkProjectCosts);
+            monthlyCostInput.addEventListener('input', checkProjectCosts);
+
+            gainTypeSelect.addEventListener('change', generateDynamicFields);
+            addGainBtn.addEventListener('click', addGainToSummary);
+            generateBtn.addEventListener('click', generateROIForecast);
+
+            // Switch between charts
+            switchChartBtn.addEventListener('click', function () {
+                const isProjectRoiVisible = !projectRoiChartContainer.classList.contains('hidden');
+
+                if (isProjectRoiVisible) {
+                    projectRoiChartContainer.classList.add('hidden');
+                    costVsProfitChartContainer.classList.remove('hidden');
+                    document.getElementById('project-roi-table-container').classList.add('hidden');
+                    document.getElementById('cost-vs-profit-table-container').classList.remove('hidden');
+                    switchChartBtn.textContent = 'Show ROI Chart';
+                } else {
+                    projectRoiChartContainer.classList.remove('hidden');
+                    costVsProfitChartContainer.classList.add('hidden');
+                    document.getElementById('project-roi-table-container').classList.remove('hidden');
+                    document.getElementById('cost-vs-profit-table-container').classList.add('hidden');
+                    switchChartBtn.textContent = 'Show Cost vs Profit Chart';
+                }
+            });
+
+            // Slider event listeners
+            revenueGrowthSlider.addEventListener('input', function () {
+                revenueGrowthValue.textContent = revenueGrowthSlider.value + '%';
+                if (roiAnalysisSection.classList.contains('hidden') === false) {
+                    generateROIForecast();
+                }
+            });
+
+            amcGrowthSlider.addEventListener('input', function () {
+                amcGrowthValue.textContent = amcGrowthSlider.value + '%';
+                if (roiAnalysisSection.classList.contains('hidden') === false) {
+                    generateROIForecast();
+                }
+            });
+
+            costSavingsGrowthSlider.addEventListener('input', function () {
+                costSavingsGrowthValue.textContent = costSavingsGrowthSlider.value + '%';
+                if (roiAnalysisSection.classList.contains('hidden') === false) {
+                    generateROIForecast();
+                }
+            });
+
+            // Initial setup
+            checkProjectCosts();
+        });
+    </script>
+</body>
+
+</html>
