@@ -41,7 +41,7 @@
         .container {
             max-width: 100%;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0px;
         }
 
         header {
@@ -55,7 +55,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         .logo {
@@ -115,7 +115,7 @@
 
         h2 {
             color: var(--text-color);
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             font-weight: 600;
         }
 
@@ -123,7 +123,11 @@
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
+        }
+
+        #summary-section {
+            margin-bottom: -20px;
         }
 
         .section2 {
@@ -131,7 +135,7 @@
             box-shadow: var(--card-shadow);
             border-radius: 8px;
             padding: 24px;
-            margin-bottom: 24px;
+            margin-bottom: 5px;
             transition: box-shadow 0.3s ease;
         }
 
@@ -157,7 +161,7 @@
         .form-group {
             flex: 1 0 200px;
             padding: 0 10px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .form-group label {
@@ -264,7 +268,7 @@
             color: var(--primary-color);
             border: 1px solid var(--border-color);
             padding: 8px 16px;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .btn-switch:hover {
@@ -274,7 +278,7 @@
 
         .table-container {
             overflow-x: auto;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         table {
@@ -325,7 +329,7 @@
         }
 
         .slider-group {
-            margin-bottom: 16px;
+            margin-bottom: 0px;
         }
 
         .slider-group label {
@@ -407,6 +411,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 24px;
+            margin-bottom: -35px;
         }
 
         .column {
@@ -611,6 +616,82 @@
         #aiObservations p {
             margin-bottom: 16px;
         }
+
+        /* Grid layout for dynamic fields */
+        .dynamic-fields-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .dynamic-fields-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .dynamic-fields-row .form-group {
+            flex: 1;
+            min-width: 0;
+            /* Allows the flex items to shrink below their minimum content size */
+        }
+
+        /* Make inputs and labels adjust to the available space */
+        .dynamic-fields-row label {
+            display: block;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dynamic-fields-row input {
+            width: 100%;
+        }
+
+        .project-name-container {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .project-name-wrapper {
+            display: flex;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-name-label {
+            font-weight: 500;
+            color: #212529;
+            margin-right: 15px;
+            min-width: 120px;
+        }
+
+        .project-name-input {
+            flex: 1;
+        }
+
+        .project-name-input input {
+            width: 100%;
+            height: 38px;
+            padding: 6px 12px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .project-name-input input:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
     </style>
 </head>
 
@@ -630,6 +711,15 @@
                 </ul>
             </nav>
         </header>
+
+        <div class="project-name-container">
+            <div class="project-name-wrapper">
+                <div class="project-name-label">Project Name:</div>
+                <div class="project-name-input">
+                    <input type="text" id="project-name" class="form-control" placeholder="Enter project name">
+                </div>
+            </div>
+        </div>
 
         <!-- Wrap your existing sections in a container with two columns -->
         <div class="section">
@@ -651,38 +741,64 @@
                         <label for="monthly-cost">Monthly Recurring Cost ($)</label>
                         <input type="number" id="monthly-cost" class="form-control" min="0" step="1">
                     </div>
+                    <div class="form-group">
+                        <label for="amc-growth">Expected Increase in Recurring Costs Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="amc-growth" class="slider form-control" min="0" max="100" value="0"
+                                step="0.5">
+                            <span id="amc-growth-value" class="slider-value">0%</span>
+                        </div>
+                    </div>
                     <div id="project-cost-message" class="message"></div>
                 </div>
 
-                <!-- Your existing Gains block - no changes to the inside content -->
+                <!-- Replace the existing gain selection portion with this code -->
                 <div class="column">
-                    <!-- Keep all your existing Gains content here unchanged -->
                     <div class="section-title">Gains</div>
-                    <!-- All your existing form groups remain unchanged -->
+                    <!-- New gain category dropdown -->
+                    <div class="form-group">
+                        <label for="gain-category">Select Gain Category</label>
+                        <select id="gain-category" class="form-control" disabled>
+                            <option value="revenue">Revenue Gain</option>
+                            <option value="savings">Savings Gain</option>
+                        </select>
+                    </div>
+
+                    <!-- Revenue Growth Slider (initially hidden) -->
+                    <div id="revenue-growth-container" class="form-group" style="display: none;">
+                        <label for="revenue-growth">Expected Revenue Growth Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="revenue-growth" class="slider form-control" min="0" max="100"
+                                value="0" step="0.5">
+                            <span id="revenue-growth-value" class="slider-value">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Cost Savings Growth Slider (initially hidden) -->
+                    <div id="cost-savings-growth-container" class="form-group" style="display: none;">
+                        <label for="cost-savings-growth">Expected Cost Savings Growth Yearly (%)</label>
+                        <div class="slider-row">
+                            <input type="range" id="cost-savings-growth" class="slider form-control" min="0" max="100"
+                                value="0" step="0.5">
+                            <span id="cost-savings-growth-value" class="slider-value">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Existing gain type dropdown -->
                     <div class="form-group">
                         <label for="gain-type">Select Gain Type</label>
                         <select id="gain-type" class="form-control" disabled>
                             <option value="">Select a Gain</option>
-                            <option value="Saves Costs">Saves Costs</option>
-                            <option value="Speeds Up GTM">Speeds Up GTM</option>
-                            <option value="Improves Customer Service">Improves Customer Service</option>
-                            <option value="Gives Competitive Advantage">Gives Competitive Advantage</option>
-                            <option value="Improves Employee Satisfaction">Improves Employee Satisfaction</option>
-                            <option value="Maximizes Customer Lifetime Value">Maximizes Customer Lifetime Value</option>
-                            <option value="Improving Operational Efficiency">Improving Operational Efficiency</option>
-                            <option value="Enhancing Cybersecurity">Enhancing Cybersecurity</option>
-                            <option value="Migrating to Cloud">Migrating to Cloud</option>
-                            <option value="Enabling Data-Driven Decisions">Enabling Data-Driven Decisions</option>
-                            <option value="Optimizing Costs">Optimizing Costs</option>
-                            <option value="Enhancing Customer Experience">Enhancing Customer Experience</option>
-                            <option value="Automating Repetitive Tasks">Automating Repetitive Tasks</option>
-                            <option value="Ensuring Compliance">Ensuring Compliance</option>
-                            <option value="Integrating Legacy Systems">Integrating Legacy Systems</option>
-                            <option value="Improving Agility">Improving Agility</option>
+                            <!-- Options will be populated dynamically based on category selection -->
                         </select>
                     </div>
                     <div id="dynamic-fields" class="dynamic-fields"></div>
-                    <button id="add-gain-btn" class="btn btn-add" disabled>+ Add Gain</button>
+
+                    <!-- Button row with flexbox -->
+                    <div class="button-row" style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="add-gain-btn" class="btn btn-add" disabled>+ Add Gain</button>
+                        <button id="generate-btn" class="btn btn-generate">Generate ROI Chart</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -695,8 +811,8 @@
                         <thead>
                             <tr>
                                 <th>Gain</th>
-                                <th>Increase in Revenue ($)</th>
-                                <th>Cost Saving ($)</th>
+                                <th>Increase in Revenue Yearly ($)</th>
+                                <th>Cost Saving Yearly ($)</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -715,40 +831,6 @@
             </div>
         </div>
 
-        <div class="section">
-            <div class="section2">
-                <h2>Financial Projections</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="revenue-growth">Expected Revenue Growth Yearly (%)</label>
-                        <div class="slider-row">
-                            <input type="range" id="revenue-growth" class="slider form-control" min="0" max="100"
-                                value="5" step="0.5">
-                            <span id="revenue-growth-value" class="slider-value">5%</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="amc-growth">Expected AMC Increase Yearly (%)</label>
-                        <div class="slider-row">
-                            <input type="range" id="amc-growth" class="slider form-control" min="0" max="100" value="3"
-                                step="0.5">
-                            <span id="amc-growth-value" class="slider-value">3%</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="cost-savings-growth">Expected Cost Savings Growth Yearly (%)</label>
-                        <div class="slider-row">
-                            <input type="range" id="cost-savings-growth" class="slider form-control" min="0" max="100"
-                                value="2" step="0.5">
-                            <span id="cost-savings-growth-value" class="slider-value">2%</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button id="generate-btn" class="btn btn-generate btn-block">Generate ROI Chart</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div id="roi-analysis" class="section hidden">
             <div class="section2">
@@ -804,7 +886,7 @@
                                 <!-- Data will be filled dynamically -->
                             </tr>
                             <tr id="cumulative-gain-row">
-                                <th>Cumulative Gain</th>
+                                <th>Cumulative Cost Savings or Revenue Rise</th>
                                 <!-- Data will be filled dynamically -->
                             </tr>
                         </tbody>
@@ -852,7 +934,7 @@
                                 <!-- Data will be filled dynamically -->
                             </tr>
                             <tr id="net-profit-row">
-                                <th>Net Profit/Loss</th>
+                                <th>Cost Savings or Revenue Rise</th>
                                 <!-- Data will be filled dynamically -->
                             </tr>
                         </tbody>
@@ -882,27 +964,54 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Gain data structure
+            // Categorized gains data
+            const categorizedGains = {
+                revenue: [
+                    "Speeds Up GTM",
+                    "Gives Competitive Advantage",
+                    "Maximizes Customer Lifetime Value",
+                    "Enabling Data-Driven Decisions",
+                    "Enhancing Customer Experience"
+                ],
+                savings: [
+                    "Saves Costs",
+                    "Improves Customer Service",
+                    "Improves Employee Satisfaction",
+                    "Improving Operational Efficiency",
+                    "Enhancing Cybersecurity",
+                    "Migrating to Cloud",
+                    "Optimizing Costs",
+                    "Automating Repetitive Tasks",
+                    "Ensuring Compliance",
+                    "Integrating Legacy Systems",
+                    "Improving Agility"
+                ]
+            };
+
+            // Original gains data
             const gainsData = {
                 "Saves Costs": ["Total Hours Saved Monthly", "Hourly Wage ($)"],
                 "Speeds Up GTM": ["Projected Sales per Period ($)", "Number of Periods Gained", "Cost of Launching Earlier ($)"],
                 "Improves Customer Service": ["Increased Customer Retention Rate (%)", "Total Revenue from Retained Customers ($)", "Cost of Customer Satisfaction Initiatives ($)"],
-                "Gives Competitive Advantage": ["Premium Pricing (Per Customer) ($)", "Projected Sales Volume"],
-                "Improves Employee Satisfaction": ["Turnover Rate Reduction (%)", "Average Cost of Turnover ($)", "Productivity Increase (%)", "Average Salary ($)", "Number of Employees"],
+                "Gives Competitive Advantage": ["Premium Pricing (Per Customer) ($)", "Projected Sales Volume Yearly"],
+                "Improves Employee Satisfaction": ["Turnover Rate Reduction Yearly (%)", "Average Cost of Turnover Yearly ($)", "Productivity Increase Yearly (%)", "Average Yearly Salary ($)", "Number of Employees"],
                 "Maximizes Customer Lifetime Value": ["Average Purchase Value ($)", "Purchase Frequency", "Customer Lifespan"],
                 "Improving Operational Efficiency": ["Labor Cost Savings ($)", "Increased Productivity Value ($)", "Investment Cost A ($)"],
-                "Enhancing Cybersecurity": ["Estimated Losses Avoided ($)", "Investment Cost B ($)"],
-                "Migrating to Cloud": ["Infrastructure Savings ($)", "Agility Benefits ($)", "Migration Cost ($)"],
-                "Enabling Data-Driven Decisions": ["Incremental Revenue from Data Insights ($)", "Investment Cost C ($)"],
-                "Optimizing Costs": ["Cost Savings Identified and Realized ($)", "Cost of Optimization ($)"],
+                "Enhancing Cybersecurity": ["Estimated Losses Avoided Yearly ($)", "Investment Cost B ($)"],
+                "Migrating to Cloud": ["Infrastructure Savings Yearly ($)", "Agility Benefits Yearly ($)", "Migration Cost ($)"],
+                "Enabling Data-Driven Decisions": ["Incremental Revenue from Data Insights Yearly ($)", "Investment Cost C ($)"],
+                "Optimizing Costs": ["Cost Savings Identified and Realized Yearly ($)", "Cost of Optimization ($)"],
                 "Enhancing Customer Experience": ["Increased Revenue from Customer Retention ($)", "New Customer Revenue ($)", "Investment Cost D ($)"],
-                "Automating Repetitive Tasks": ["Labor Cost Savings ($)", "Reduced Error Costs ($)", "Automation Investment ($)"],
-                "Ensuring Compliance": ["Avoided Penalties and Fines ($)", "Cost Savings from Compliance Automation ($)", "Compliance Costs ($)"],
+                "Automating Repetitive Tasks": ["Labor Cost Savings Yearly ($)", "Reduced Error Costs Yearly ($)", "Automation Investment ($)"],
+                "Ensuring Compliance": ["Avoided Penalties and Fines Yearly ($)", "Cost Savings from Compliance Automation Yearly ($)", "Compliance Costs ($)"],
                 "Integrating Legacy Systems": ["Extended System Lifespan Value ($)", "Improved Efficiency ($)", "Integration Costs ($)"],
                 "Improving Agility": ["Revenue from Faster Adaptation to Market ($)", "Increased Innovation ROI ($)", "Investment Cost E ($)"]
             };
 
             // DOM Elements
+            const gainCategorySelect = document.getElementById('gain-category');
+            const revenueGrowthContainer = document.getElementById('revenue-growth-container');
+            const costSavingsGrowthContainer = document.getElementById('cost-savings-growth-container');
             const upfrontCostInput = document.getElementById('upfront-cost');
             const projectDurationInput = document.getElementById('project-duration');
             const monthlyCostInput = document.getElementById('monthly-cost');
@@ -930,7 +1039,8 @@
             const roiTableBody = document.getElementById('roi-table-body');
             const projectRoiTableContainer = document.getElementById('project-roi-table-container');
             const costVsProfitTableContainer = document.getElementById('cost-vs-profit-table-container');
-            const aiSection = document.getElementById('ai')
+            const aiSection = document.getElementById('ai');
+            const projectNameInput = document.getElementById('project-name');
 
             // Charts
             let projectRoiChart;
@@ -940,25 +1050,104 @@
             let summaryData = [];
             let editingIndex = -1;
 
-            // Check if project costs are complete
+            // Modify the checkProjectCosts function
             function checkProjectCosts() {
+                const projectName = projectNameInput.value;
                 const upfrontCost = upfrontCostInput.value;
                 const projectDuration = projectDurationInput.value;
                 const monthlyCost = monthlyCostInput.value;
 
-                if (upfrontCost !== '' && projectDuration !== '' && monthlyCost !== '') {
+                // Get all dynamic field inputs
+                const dynamicFields = document.querySelectorAll('.dynamic-field');
+
+                if (projectName !== '' && upfrontCost !== '' && projectDuration !== '' && monthlyCost !== '') {
+                    gainCategorySelect.disabled = false;
                     gainTypeSelect.disabled = false;
-                    projectCostMessage.textContent = 'Project costs added successfully! Now you can add gains.';
+                    addGainBtn.disabled = false;
+                    projectCostMessage.textContent = 'Project details added successfully! Now you can add gains.';
                     projectCostMessage.className = 'message success';
+
+                    // Enable all dynamic fields
+                    dynamicFields.forEach(field => {
+                        field.disabled = false;
+                    });
                 } else {
-                    gainTypeSelect.disabled = true;
-                    addGainBtn.disabled = true;
-                    projectCostMessage.textContent = 'Please fill all project cost fields to proceed.';
+                    gainCategorySelect.disabled = false; // Keep enabled to show selection
+                    gainTypeSelect.disabled = false; // Keep enabled to show selection
+                    addGainBtn.disabled = true; // Keep disabled until costs are filled
+
+                    let errorMessage = 'Please fill all required fields to proceed.';
+                    if (projectName === '') {
+                        errorMessage = 'Please enter a project name at the top of the page.';
+                    } else {
+                        errorMessage = 'Please fill all project cost fields to proceed.';
+                    }
+
+                    projectCostMessage.textContent = errorMessage;
                     projectCostMessage.className = 'message error';
+
+                    // Disable all dynamic fields
+                    dynamicFields.forEach(field => {
+                        field.disabled = true;
+                    });
                 }
             }
 
-            // Generate dynamic fields based on selected gain type
+            // Modified populateGainTypes function to handle default selections
+            function populateGainTypes() {
+                const selectedCategory = gainCategorySelect.value;
+
+                // Clear existing options
+                gainTypeSelect.innerHTML = '<option value="">Select a Gain</option>';
+
+                // Hide both sliders initially
+                revenueGrowthContainer.style.display = 'none';
+                costSavingsGrowthContainer.style.display = 'none';
+
+                if (!selectedCategory) {
+                    gainTypeSelect.disabled = true;
+                    return;
+                }
+
+                // Enable the gain type dropdown
+                gainTypeSelect.disabled = false;
+
+                // Show the appropriate slider based on category
+                if (selectedCategory === 'revenue') {
+                    revenueGrowthContainer.style.display = 'block';
+                } else if (selectedCategory === 'savings') {
+                    costSavingsGrowthContainer.style.display = 'block';
+                }
+
+                // Add appropriate options based on category
+                categorizedGains[selectedCategory].forEach(gainType => {
+                    const option = document.createElement('option');
+                    option.value = gainType;
+                    option.textContent = gainType;
+                    gainTypeSelect.appendChild(option);
+                });
+
+                // Set default gain type based on category
+                if (selectedCategory === 'revenue') {
+                    gainTypeSelect.value = 'Speeds Up GTM';
+                } else if (selectedCategory === 'savings') {
+                    gainTypeSelect.value = 'Saves Costs';
+                }
+
+                // Clear dynamic fields when category changes
+                dynamicFieldsContainer.innerHTML = '';
+
+                // Generate dynamic fields for the default gain type
+                generateDynamicFields();
+            }
+
+            // Initialize the form
+            checkProjectCosts();
+
+            // Set default values
+            setDefaultValues();
+
+            // Modified function to generate dynamic fields with two per row
             function generateDynamicFields() {
                 const selectedGain = gainTypeSelect.value;
                 if (!selectedGain) {
@@ -968,21 +1157,105 @@
                 }
 
                 const fields = gainsData[selectedGain];
-                let html = '';
+                let html = '<div class="dynamic-fields-grid">';
 
-                fields.forEach(field => {
-                    const fieldId = field.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+                // Process fields in pairs
+                for (let i = 0; i < fields.length; i += 2) {
+                    html += '<div class="dynamic-fields-row">';
+
+                    // Add the first field of the pair
+                    const field1 = fields[i];
+                    const fieldId1 = field1.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
                     html += `
-                        <div class="form-group">
-                            <label for="${fieldId}">${field}</label>
-                            <input type="number" id="${fieldId}" class="form-control dynamic-field" min="0" step="0.01">
-                        </div>
-                    `;
-                });
+            <div class="form-group">
+                <label for="${fieldId1}">${field1}</label>
+                <input type="number" id="${fieldId1}" class="form-control dynamic-field" min="0" step="0.01" ${areProjectCostsComplete() ? '' : 'disabled'}>
+            </div>
+        `;
 
+                    // Add the second field if it exists
+                    if (i + 1 < fields.length) {
+                        const field2 = fields[i + 1];
+                        const fieldId2 = field2.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+                        html += `
+                <div class="form-group">
+                    <label for="${fieldId2}">${field2}</label>
+                    <input type="number" id="${fieldId2}" class="form-control dynamic-field" min="0" step="0.01" ${areProjectCostsComplete() ? '' : 'disabled'}>
+                </div>
+            `;
+                    }
+
+                    html += '</div>'; // Close the row
+                }
+
+                html += '</div>'; // Close the grid
                 dynamicFieldsContainer.innerHTML = html;
-                addGainBtn.disabled = false;
+                addGainBtn.disabled = !areProjectCostsComplete();
             }
+
+            // Update the areProjectCostsComplete helper function too
+            function areProjectCostsComplete() {
+                const projectName = projectNameInput.value;
+                const upfrontCost = upfrontCostInput.value;
+                const projectDuration = projectDurationInput.value;
+                const monthlyCost = monthlyCostInput.value;
+
+                return projectName !== '' && upfrontCost !== '' && projectDuration !== '' && monthlyCost !== '';
+            }
+
+            // Add event listener for the project name input
+            projectNameInput.addEventListener('input', checkProjectCosts);
+
+            // Set default values on page load
+            function setDefaultValues() {
+                // Set savings as default category
+                gainCategorySelect.value = 'savings';
+
+                // Show cost savings growth slider
+                costSavingsGrowthContainer.style.display = 'block';
+                revenueGrowthContainer.style.display = 'none';
+
+                // Populate the gain types for savings category
+                populateGainTypes();
+
+                // Set "Saves Costs" as default gain type
+                gainTypeSelect.value = 'Saves Costs';
+
+                // Generate dynamic fields for the default selection
+                generateDynamicFields();
+            }
+
+            // Initialize slider value displays
+            revenueGrowthValue.textContent = revenueGrowthSlider.value + '%';
+            costSavingsGrowthValue.textContent = costSavingsGrowthSlider.value + '%';
+            amcGrowthValue.textContent = amcGrowthSlider.value + '%'
+
+            // Add event listeners for the sliders to update their display values
+            amcGrowthSlider.addEventListener('input', function () {
+                amcGrowthValue.textContent = amcGrowthSlider.value + '%';
+            });
+
+            revenueGrowthSlider.addEventListener('input', function () {
+                revenueGrowthValue.textContent = revenueGrowthSlider.value + '%';
+            });
+
+            costSavingsGrowthSlider.addEventListener('input', function () {
+                costSavingsGrowthValue.textContent = costSavingsGrowthSlider.value + '%';
+            });
+
+            // Add event listeners for project cost fields
+            upfrontCostInput.addEventListener('input', checkProjectCosts);
+            projectDurationInput.addEventListener('input', checkProjectCosts);
+            monthlyCostInput.addEventListener('input', checkProjectCosts);
+
+            // Add event listener for gain category change
+            gainCategorySelect.addEventListener('change', populateGainTypes);
+
+            // Add event listener for gain type change
+            gainTypeSelect.addEventListener('change', generateDynamicFields);
+
+            // Initialize the form
+            checkProjectCosts();
 
             // Calculate gain values based on selected gain type
             function calculateGainValues() {
@@ -1006,7 +1279,7 @@
                 try {
                     switch (selectedGain) {
                         case "Saves Costs":
-                            costSaving = values["total-hours-saved-monthly"] * values["hourly-wage-"] * projectDuration;
+                            costSaving = values["total-hours-saved-monthly"] * values["hourly-wage-"] * 12;
                             break;
 
                         case "Speeds Up GTM":
@@ -1018,11 +1291,11 @@
                             break;
 
                         case "Gives Competitive Advantage":
-                            increaseRevenue = values["premium-pricing-per-customer-"] * values["projected-sales-volume"];
+                            increaseRevenue = values["premium-pricing-per-customer-"] * values["projected-sales-volume-yearly"];
                             break;
 
                         case "Improves Employee Satisfaction":
-                            costSaving = ((values["turnover-rate-reduction-"] / 100) * values["average-cost-of-turnover-"] * (values["productivity-increase-"] / 100)) + (values["average-salary-"] * values["number-of-employees"]);
+                            costSaving = ((values["turnover-rate-reduction-yearly-"] / 100) * values["average-cost-of-turnover-yearly-"] * (values["productivity-increase-yearly-"] / 100)) + (values["average-yearly-salary-"] * values["number-of-employees"]);
                             break;
 
                         case "Maximizes Customer Lifetime Value":
@@ -1034,19 +1307,19 @@
                             break;
 
                         case "Enhancing Cybersecurity":
-                            costSaving = values["estimated-losses-avoided-"] - values["investment-cost-b-"];
+                            costSaving = values["estimated-losses-avoided-yearly-"] - values["investment-cost-b-"];
                             break;
 
                         case "Migrating to Cloud":
-                            costSaving = (values["infrastructure-savings-"] + values["agility-benefits-"]) - values["migration-cost-"];
+                            costSaving = (values["infrastructure-savings-yearly-"] + values["agility-benefits-yearly-"]) - values["migration-cost-"];
                             break;
 
                         case "Enabling Data-Driven Decisions":
-                            increaseRevenue = values["incremental-revenue-from-data-insights-"] - values["investment-cost-c-"];
+                            increaseRevenue = values["incremental-revenue-from-data-insights-yearly-"];
                             break;
 
                         case "Optimizing Costs":
-                            costSaving = values["cost-savings-identified-and-realized-"] - values["cost-of-optimization-"];
+                            costSaving = values["cost-savings-identified-and-realized-yearly-"] - values["cost-of-optimization-"];
                             break;
 
                         case "Enhancing Customer Experience":
@@ -1054,11 +1327,11 @@
                             break;
 
                         case "Automating Repetitive Tasks":
-                            costSaving = (values["labor-cost-savings-"] + values["reduced-error-costs-"]) - values["automation-investment-"];
+                            costSaving = (values["labor-cost-savings-yearly-"] + values["reduced-error-costs-yearly-"]) - values["automation-investment-"];
                             break;
 
                         case "Ensuring Compliance":
-                            costSaving = (values["avoided-penalties-and-fines-"] + values["cost-savings-from-compliance-automation-"]) - values["compliance-costs-"];
+                            costSaving = (values["avoided-penalties-and-fines-yearly-"] + values["cost-savings-from-compliance-automation-yearly-"]) - values["compliance-costs-"];
                             break;
 
                         case "Integrating Legacy Systems":
@@ -1218,6 +1491,9 @@
             }
 
             // Generate ROI forecast
+            // Generate ROI forecast
+            // Generate ROI forecast
+            // Generate ROI forecast
             function generateROIForecast() {
                 if (summaryData.length === 0) {
                     alert('Please add at least one gain to generate the ROI forecast.');
@@ -1225,76 +1501,190 @@
                 }
 
                 const upfrontCost = parseFloat(upfrontCostInput.value) || 0;
-                const projectDuration = parseInt(projectDurationInput.value) || 0;
+                const projectDuration = parseInt(projectDurationInput.value) || 0; // Project duration in months
                 const monthlyCost = parseFloat(monthlyCostInput.value) || 0;
                 const revenueGrowth = parseFloat(revenueGrowthSlider.value) / 100;
                 const amcGrowth = parseFloat(amcGrowthSlider.value) / 100;
                 const costSavingsGrowth = parseFloat(costSavingsGrowthSlider.value) / 100;
 
                 // Calculate totals from summary
-                let totalRevenue = 0;
-                let totalSavings = 0;
+                let totalAnnualRevenue = 0;
+                let totalAnnualSavings = 0;
 
                 summaryData.forEach(item => {
-                    totalRevenue += item.increaseRevenue;
-                    // Continue from where the code left off
-                    totalRevenue += item.increaseRevenue;
-                    totalSavings += item.costSaving;
+                    totalAnnualRevenue += item.increaseRevenue;
+                    totalAnnualSavings += item.costSaving;
                 });
 
-                // Calculate ROI data for 5 years (0-4)
-                const roiData = [];
-                const quarterlyData = {
-                    labels: [],
-                    cumulativeCost: [],
-                    cumulativeGain: []
-                };
+                console.log("Total Annual Revenue:", totalAnnualRevenue);
+                console.log("Total Annual Savings:", totalAnnualSavings);
 
-                const costVsProfitData = {
-                    labels: [],
-                    projectCost: [],
-                    netProfit: []
-                };
+                // Calculate total months and quarters for our analysis (5 years)
+                const totalMonths = 5 * 12;
+                const totalQuarters = 5 * 4;
 
-                // Initial values
+                // Calculate quarterly investment cost
+                // Spread upfront cost evenly across the project duration
+                const quarterlyInvestmentCost = projectDuration > 0 ?
+                    upfrontCost / (Math.ceil(projectDuration / 3)) : upfrontCost;
+
+                // Initialize arrays for quarterly data
+                const quarterlyLabels = [];
+                const quarterlyCosts = [];
+                const quarterlyRevenues = [];
+                const quarterlySavings = [];
+                const quarterlyCumulativeCosts = [];
+                const quarterlyCumulativeGains = [];
+
+                // For cost vs profit chart
+                const costVsProfitLabels = [];
+                const costVsProfitCosts = [];
+                const costVsProfitRevenues = [];
+
                 let cumulativeCost = 0;
                 let cumulativeGain = 0;
 
-                for (let year = 0; year <= 4; year++) {
-                    // Calculate the investment cost (upfront cost only in year 0)
-                    const investmentCost = year === 0 ? upfrontCost : 0;
+                // Calculate ROI data for each quarter across 5 years
+                for (let quarter = 0; quarter < totalQuarters; quarter++) {
+                    // Calculate which year and quarter within the year
+                    const year = Math.floor(quarter / 4);
+                    const quarterInYear = quarter % 4 + 1;
 
-                    // Calculate AMC cost based on project duration
-                    let amcCost = 0;
-                    if (year === 0) {
-                        // In year 0, AMC is applied only for months after project completion
-                        const monthsAfterCompletion = Math.max(0, 12 - projectDuration);
-                        amcCost = monthlyCost * monthsAfterCompletion;
-                    } else {
-                        // In subsequent years, AMC is applied for the whole year with yearly growth
-                        amcCost = monthlyCost * 12 * Math.pow(1 + amcGrowth, year);
+                    // Create quarter label (e.g., "Y0Q1")
+                    const quarterLabel = `Y${year}Q${quarterInYear}`;
+                    quarterlyLabels.push(quarterLabel);
+                    costVsProfitLabels.push(quarterLabel);
+
+                    // Calculate month range for this quarter
+                    const quarterStartMonth = quarter * 3;
+                    const quarterEndMonth = (quarter + 1) * 3 - 1;
+
+                    // Determine if this quarter is during project development or after completion
+                    const isBeforeCompletion = quarterStartMonth < projectDuration;
+                    const isQuarterOfCompletion = quarterStartMonth < projectDuration && quarterEndMonth >= projectDuration;
+                    const monthsBeforeCompletionInQuarter = isBeforeCompletion ?
+                        Math.min(3, projectDuration - quarterStartMonth) : 0;
+                    const monthsAfterCompletionInQuarter = 3 - monthsBeforeCompletionInQuarter;
+
+                    // Calculate costs for this quarter
+                    let quarterCost = 0;
+
+                    // Add investment cost if during project development
+                    if (isBeforeCompletion) {
+                        // Only distribute investment cost during project development
+                        quarterCost += (monthsBeforeCompletionInQuarter / 3) * quarterlyInvestmentCost;
                     }
 
-                    // Calculate revenue increase with yearly growth
-                    const revenueIncrease = totalRevenue * Math.pow(1 + revenueGrowth, year);
+                    // Add AMC cost if after project completion
+                    if (monthsAfterCompletionInQuarter > 0) {
+                        // Apply AMC cost with growth for months after completion
+                        const amcCostForQuarter = monthsAfterCompletionInQuarter * monthlyCost *
+                            Math.pow(1 + amcGrowth, year);
+                        quarterCost += amcCostForQuarter;
+                    }
 
-                    // Calculate cost savings with yearly growth
-                    const costSavings = totalSavings * Math.pow(1 + costSavingsGrowth, year);
+                    // Calculate revenue and savings for this quarter (only after project completion)
+                    let quarterRevenue = 0;
+                    let quarterSavings = 0;
 
-                    // Total revenue and savings
+                    if (monthsAfterCompletionInQuarter > 0) {
+                        // Calculate monthly revenue and savings with growth rates
+                        const monthlyRevenue = totalAnnualRevenue / 12;
+                        const monthlySavings = totalAnnualSavings / 12;
+
+                        // Apply growth rates for the current year
+                        const adjustedMonthlyRevenue = monthlyRevenue * Math.pow(1 + revenueGrowth, year);
+                        const adjustedMonthlySavings = monthlySavings * Math.pow(1 + costSavingsGrowth, year);
+
+                        // Calculate revenue and savings for this quarter separately
+                        quarterRevenue = monthsAfterCompletionInQuarter * adjustedMonthlyRevenue;
+                        quarterSavings = monthsAfterCompletionInQuarter * adjustedMonthlySavings;
+                    }
+
+                    // Update cumulative values
+                    cumulativeCost += quarterCost;
+                    cumulativeGain += (quarterRevenue + quarterSavings);
+
+                    // Store quarterly data
+                    quarterlyCosts.push(quarterCost);
+                    quarterlyRevenues.push(quarterRevenue);
+                    quarterlySavings.push(quarterSavings);
+                    quarterlyCumulativeCosts.push(cumulativeCost);
+                    quarterlyCumulativeGains.push(cumulativeGain);
+
+                    // Store data for cost vs profit chart
+                    costVsProfitCosts.push(quarterCost);
+                    costVsProfitRevenues.push(quarterRevenue + quarterSavings);
+                }
+
+                // Create quarterly data structure for charts
+                const quarterlyData = {
+                    labels: quarterlyLabels,
+                    cumulativeCost: quarterlyCumulativeCosts,
+                    cumulativeGain: quarterlyCumulativeGains
+                };
+
+                const costVsProfitData = {
+                    labels: costVsProfitLabels,
+                    projectCost: costVsProfitCosts,
+                    netProfit: costVsProfitRevenues
+                };
+
+                // Generate annual ROI data for the table
+                const roiData = [];
+
+                for (let year = 0; year <= 4; year++) {
+                    // Calculate annual totals from quarterly data
+                    const yearStartQuarter = year * 4;
+                    const yearEndQuarter = (year + 1) * 4 - 1;
+
+                    let investmentCost = 0;
+                    let amcCost = 0;
+                    let revenueIncrease = 0;
+                    let costSavings = 0;
+
+                    // Calculate which quarters are before/after project completion
+                    const projectCompletionQuarter = Math.ceil(projectDuration / 3) - 1;
+
+                    // Sum up quarterly data for this year
+                    for (let q = yearStartQuarter; q <= yearEndQuarter; q++) {
+                        // Skip if we're out of bounds
+                        if (q >= quarterlyCosts.length) continue;
+
+                        // Add costs
+                        const quarterCost = quarterlyCosts[q];
+
+                        // Determine if this is investment cost or AMC cost
+                        if (q <= projectCompletionQuarter) {
+                            // During project development, costs are investment costs
+                            // Calculate how much of this quarter is within project development
+                            const quarterStartMonth = q * 3;
+                            const quarterEndMonth = (q + 1) * 3 - 1;
+                            const projectEndMonth = projectDuration - 1;
+
+                            if (quarterEndMonth <= projectEndMonth) {
+                                // Entire quarter is before completion
+                                investmentCost += quarterCost;
+                            } else if (quarterStartMonth <= projectEndMonth) {
+                                // Quarter contains the completion point
+                                const monthsBeforeCompletion = projectEndMonth - quarterStartMonth + 1;
+                                const ratio = monthsBeforeCompletion / 3;
+                                investmentCost += quarterCost * ratio;
+                                amcCost += quarterCost * (1 - ratio);
+                            }
+                        } else {
+                            // After project completion, costs are AMC costs
+                            amcCost += quarterCost;
+                        }
+
+                        // Add revenue and savings separately
+                        revenueIncrease += quarterlyRevenues[q];
+                        costSavings += quarterlySavings[q];
+                    }
+
                     const totalRevenueAndSavings = revenueIncrease + costSavings;
-
-                    // Project cost for the year
                     const projectCost = investmentCost + amcCost;
-
-                    // Update cumulative cost
-                    cumulativeCost += projectCost;
-
-                    // Net profit/loss for the year
                     const netProfitLoss = totalRevenueAndSavings - projectCost;
-
-                    // Update cumulative gain
-                    cumulativeGain += netProfitLoss;
 
                     // Add data to ROI array
                     roiData.push({
@@ -1305,48 +1695,10 @@
                         costSavings,
                         totalRevenueAndSavings,
                         projectCost,
-                        cumulativeCost,
+                        cumulativeCost: quarterlyCumulativeCosts[yearEndQuarter] || 0,
                         netProfitLoss,
-                        cumulativeGain
+                        cumulativeGain: quarterlyCumulativeGains[yearEndQuarter] || 0
                     });
-
-                    // Generate quarterly data for charts
-                    for (let quarter = 1; quarter <= 4; quarter++) {
-                        const quarterLabel = `Y${year}Q${quarter}`;
-                        quarterlyData.labels.push(quarterLabel);
-
-                        // Interpolate values for quarters
-                        const quarterlyFactor = (quarter - 0.5) / 4;
-
-                        if (year === 0 && quarter === 1) {
-                            // First quarter of first year
-                            quarterlyData.cumulativeCost.push(projectCost / 4);
-                            quarterlyData.cumulativeGain.push(totalRevenueAndSavings / 4);
-
-                            costVsProfitData.labels.push(quarterLabel);
-                            costVsProfitData.projectCost.push(projectCost / 4);
-                            costVsProfitData.netProfit.push((totalRevenueAndSavings - projectCost) / 4);
-                        } else {
-                            // Subsequent quarters
-                            const prevYearData = year > 0 ? roiData[year - 1] : { cumulativeCost: 0, cumulativeGain: 0 };
-                            const currentYearData = roiData[year];
-
-                            const interpolatedCost = prevYearData.cumulativeCost +
-                                (currentYearData.cumulativeCost - prevYearData.cumulativeCost) *
-                                (quarter / 4);
-
-                            const interpolatedGain = prevYearData.cumulativeGain +
-                                (currentYearData.cumulativeGain - prevYearData.cumulativeGain) *
-                                (quarter / 4);
-
-                            quarterlyData.cumulativeCost.push(interpolatedCost);
-                            quarterlyData.cumulativeGain.push(interpolatedGain);
-
-                            costVsProfitData.labels.push(quarterLabel);
-                            costVsProfitData.projectCost.push(projectCost / 4);
-                            costVsProfitData.netProfit.push(netProfitLoss / 4);
-                        }
-                    }
                 }
 
                 // Generate ROI table
@@ -1365,7 +1717,7 @@
                     } else {
                         console.error("Chart container not found!");
                     }
-                },);
+                }, 100);
 
                 // Show ROI analysis section
                 roiAnalysisSection.classList.remove('hidden');
@@ -1495,6 +1847,9 @@
 
             // Generate ROI charts
             function generateROICharts(quarterlyData, costVsProfitData) {
+                // Get the project name
+                const projectName = projectNameInput.value || 'Project';
+
                 // Destroy previous charts if they exist
                 if (projectRoiChart) {
                     projectRoiChart.destroy();
@@ -1521,7 +1876,7 @@
                                 tension: 0.4
                             },
                             {
-                                label: 'Cumulative Gain',
+                                label: 'Cumulative Cost Savings or Revenue Rise',
                                 data: quarterlyData.cumulativeGain,
                                 backgroundColor: 'rgba(76, 175, 80, 0.1)',
                                 borderColor: 'rgba(76, 175, 80, 1)',
@@ -1537,7 +1892,7 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Project ROI Over Time',
+                                text: `${projectName} - ROI Over Time`,
                                 font: {
                                     size: 16,
                                     weight: 'bold'
@@ -1581,7 +1936,7 @@
                                 borderWidth: 1
                             },
                             {
-                                label: 'Net Profit/Loss',
+                                label: 'Cost Savings or Revenue Rise',
                                 data: costVsProfitData.netProfit,
                                 backgroundColor: 'rgba(76, 175, 80, 0.7)',
                                 borderColor: 'rgba(76, 175, 80, 1)',
@@ -1595,7 +1950,7 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: 'Project Cost vs Project Gain',
+                                text: `${projectName} - Cost vs Cost Savings or Revenue Rise`,
                                 font: {
                                     size: 16,
                                     weight: 'bold'
