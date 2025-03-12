@@ -1725,6 +1725,11 @@
                 projectRoiTableContainer.classList.remove('hidden');
                 roiTable.classList.remove('hidden');
             }
+            
+            // Replace hardcoded localhost with relative or environment-based URL
+            const API_ENDPOINT = window.location.origin + '/generate-ai-observations';
+            // Or if using environment variable
+            // const API_ENDPOINT = process.env.REACT_APP_API_URL + '/generate-ai-observations';
 
             async function fetchAIObservations() {
                 const forecastRows = document.querySelectorAll("#roi-table tbody tr");
