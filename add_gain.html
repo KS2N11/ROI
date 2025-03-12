@@ -1765,38 +1765,39 @@
                 loadingSpinner.style.display = "block";
 
                 try {
-                    const response = await fetch('http://127.0.0.1:5000/generate-ai-observations', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ forecastData })
-                    });
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ forecastData })
+                });
 
-                    console.log(forecastData);
+                console.log(forecastData);
 
-                    // Check if the response is OK
-                    if (!response.ok) {
-                        const errorBody = await response.text();
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorBody}`);
-                    }
+                // Check if the response is OK
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorBody}`);
+                }
 
-                    const data = await response.json();
+                const data = await response.json();
 
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
+                if (data.error) {
+                    throw new Error(data.error);
+                }
 
-                    // Convert Markdown to HTML using marked.js
-                    document.getElementById("aiObservations").innerHTML = marked.parse(data.observation);
+                // Convert Markdown to HTML using marked.js
+                document.getElementById("aiObservations").innerHTML = marked.parse(data.observation);
 
-                } catch (error) {
-                    console.error("Error fetching AI observations:", error);
-                    document.getElementById("aiObservations").innerHTML = `
+            } catch (error) {
+                console.error("Error fetching AI observations:", error);
+                document.getElementById("aiObservations").innerHTML = `
             <div style="color: red;">
                 <strong>Error Fetching AI Insights:</strong>
                 <p>${error.message}</p>
                 <small>Please check your backend server and API configuration.</small>
             </div>
         `;
+            }
                 } finally {
                     // Hide loading indicator and show results
                     loadingSpinner.style.display = "none";
