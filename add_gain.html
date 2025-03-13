@@ -1761,7 +1761,6 @@
                     let cumulativeCost = parseFloat(row.cells[7].textContent.replace(/[^0-9.-]+/g, "")) || 0;
                     let netProfitLoss = parseFloat(row.cells[8].textContent.replace(/[^0-9.-]+/g, "")) || 0;
                     let cumulativeGain = parseFloat(row.cells[9].textContent.replace(/[^0-9.-]+/g, "")) || 0;
-                    let projectName = projectNameInput;
 
                     forecastData.push({
                         year,
@@ -1773,8 +1772,7 @@
                         projectCost,
                         cumulativeCost,
                         netProfitLoss,
-                        cumulativeGain,
-                        projectName
+                        cumulativeGain
                     });
                 });
 
