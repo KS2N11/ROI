@@ -7,6 +7,8 @@
     <title>ROI Calculator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>    
     <style>
         :root {
             --primary-color: #1a73e8;
@@ -422,6 +424,7 @@
             flex: 1;
             min-width: 300px;
             margin-bottom: 20px;
+            margin-top: -20px;            
         }
 
         .input-fields-container {
@@ -692,6 +695,10 @@
             outline: 0;
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         }
+
+        #export-button {
+            margin-left: 44%;
+        }
     </style>
 </head>
 
@@ -949,6 +956,7 @@
                 🔄 Fetching AI Insights...
             </div>
             <div id="aiObservations" style="padding: 25px;"></div>
+            <button id="export-button" class="btn btn-primary">📥 Export to Excel</button>
         </div>
 
         <div class="section2 hidden" id="roi-table">
@@ -1041,6 +1049,7 @@
             const costVsProfitTableContainer = document.getElementById('cost-vs-profit-table-container');
             const aiSection = document.getElementById('ai');
             const projectNameInput = document.getElementById('project-name');
+            const exportButton = document.getElementById('export-button');
 
             // Charts
             let projectRoiChart;
@@ -1371,6 +1380,8 @@
                     // Update existing gain
                     summaryData[editingIndex] = gainData;
                     editingIndex = -1;
+                    // Reset button text after updating
+                    addGainBtn.textContent = 'Add Gain';
                 } else {
                     // Add new gain
                     summaryData.push(gainData);
@@ -1449,21 +1460,41 @@
             // Edit a gain
             function editGain(index) {
                 const item = summaryData[index];
-                gainTypeSelect.value = item.gain;
-                generateDynamicFields();
 
-                // Set values in fields
+                // First set the category based on the gain type
+                let category = 'savings';
+                if (categorizedGains.revenue.includes(item.gain)) {
+                    category = 'revenue';
+                }
+
+                // Set the gain category first
+                gainCategorySelect.value = category;
+                populateGainTypes(); // This will refresh gain types based on category
+
+                // Then set the gain type
+                gainTypeSelect.value = item.gain;
+                generateDynamicFields(); // Generate fields for this gain type
+
+                // Set values in fields with a slight delay to ensure fields are rendered
                 setTimeout(() => {
                     const fieldInputs = document.querySelectorAll('.dynamic-field');
                     fieldInputs.forEach(input => {
-                        const fieldName = input.id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                        if (item.values[fieldName] !== undefined) {
-                            input.value = item.values[fieldName];
+                        // Use the input's ID directly to match with the saved values
+                        const fieldId = input.id;
+                        if (item.values[fieldId] !== undefined) {
+                            input.value = item.values[fieldId];
                         }
                     });
 
+                    // Change button text to indicate editing mode
                     addGainBtn.textContent = 'Update Gain';
                     editingIndex = index;
+
+                    // Scroll to the gain section
+                    const gainSection = document.getElementById('gain-section') || gainCategorySelect.closest('section');
+                    if (gainSection) {
+                        gainSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
                 }, 100);
             }
 
@@ -1490,10 +1521,6 @@
                 return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
             }
 
-            // Generate ROI forecast
-            // Generate ROI forecast
-            // Generate ROI forecast
-            // Generate ROI forecast
             function generateROIForecast() {
                 if (summaryData.length === 0) {
                     alert('Please add at least one gain to generate the ROI forecast.');
@@ -1523,10 +1550,8 @@
                 const totalMonths = 5 * 12;
                 const totalQuarters = 5 * 4;
 
-                // Calculate quarterly investment cost
-                // Spread upfront cost evenly across the project duration
-                const quarterlyInvestmentCost = projectDuration > 0 ?
-                    upfrontCost / (Math.ceil(projectDuration / 3)) : upfrontCost;
+                // Calculate monthly investment cost (distribute upfront cost evenly across project months)
+                const monthlyInvestmentCost = projectDuration > 0 ? upfrontCost / projectDuration : upfrontCost;
 
                 // Initialize arrays for quarterly data
                 const quarterlyLabels = [];
@@ -1559,26 +1584,22 @@
                     const quarterStartMonth = quarter * 3;
                     const quarterEndMonth = (quarter + 1) * 3 - 1;
 
-                    // Determine if this quarter is during project development or after completion
-                    const isBeforeCompletion = quarterStartMonth < projectDuration;
-                    const isQuarterOfCompletion = quarterStartMonth < projectDuration && quarterEndMonth >= projectDuration;
-                    const monthsBeforeCompletionInQuarter = isBeforeCompletion ?
-                        Math.min(3, projectDuration - quarterStartMonth) : 0;
-                    const monthsAfterCompletionInQuarter = 3 - monthsBeforeCompletionInQuarter;
+                    // Determine if this quarter contains months during project development
+                    const monthsBeforeCompletion = Math.min(3, Math.max(0, projectDuration - quarterStartMonth));
+                    const monthsAfterCompletion = 3 - monthsBeforeCompletion;
 
                     // Calculate costs for this quarter
                     let quarterCost = 0;
 
-                    // Add investment cost if during project development
-                    if (isBeforeCompletion) {
-                        // Only distribute investment cost during project development
-                        quarterCost += (monthsBeforeCompletionInQuarter / 3) * quarterlyInvestmentCost;
+                    // Add upfront cost for months in this quarter that are during project development
+                    if (monthsBeforeCompletion > 0) {
+                        quarterCost += monthsBeforeCompletion * monthlyInvestmentCost;
                     }
 
-                    // Add AMC cost if after project completion
-                    if (monthsAfterCompletionInQuarter > 0) {
+                    // Add monthly recurring costs for months after project completion
+                    if (monthsAfterCompletion > 0) {
                         // Apply AMC cost with growth for months after completion
-                        const amcCostForQuarter = monthsAfterCompletionInQuarter * monthlyCost *
+                        const amcCostForQuarter = monthsAfterCompletion * monthlyCost *
                             Math.pow(1 + amcGrowth, year);
                         quarterCost += amcCostForQuarter;
                     }
@@ -1587,7 +1608,7 @@
                     let quarterRevenue = 0;
                     let quarterSavings = 0;
 
-                    if (monthsAfterCompletionInQuarter > 0) {
+                    if (monthsAfterCompletion > 0) {
                         // Calculate monthly revenue and savings with growth rates
                         const monthlyRevenue = totalAnnualRevenue / 12;
                         const monthlySavings = totalAnnualSavings / 12;
@@ -1597,8 +1618,8 @@
                         const adjustedMonthlySavings = monthlySavings * Math.pow(1 + costSavingsGrowth, year);
 
                         // Calculate revenue and savings for this quarter separately
-                        quarterRevenue = monthsAfterCompletionInQuarter * adjustedMonthlyRevenue;
-                        quarterSavings = monthsAfterCompletionInQuarter * adjustedMonthlySavings;
+                        quarterRevenue = monthsAfterCompletion * adjustedMonthlyRevenue;
+                        quarterSavings = monthsAfterCompletion * adjustedMonthlySavings;
                     }
 
                     // Update cumulative values
@@ -1643,38 +1664,28 @@
                     let revenueIncrease = 0;
                     let costSavings = 0;
 
-                    // Calculate which quarters are before/after project completion
-                    const projectCompletionQuarter = Math.ceil(projectDuration / 3) - 1;
-
                     // Sum up quarterly data for this year
                     for (let q = yearStartQuarter; q <= yearEndQuarter; q++) {
                         // Skip if we're out of bounds
                         if (q >= quarterlyCosts.length) continue;
 
-                        // Add costs
-                        const quarterCost = quarterlyCosts[q];
+                        // Calculate month range for this quarter
+                        const quarterStartMonth = q * 3;
+                        const quarterEndMonth = (q + 1) * 3 - 1;
+                        const projectEndMonth = projectDuration - 1;
 
-                        // Determine if this is investment cost or AMC cost
-                        if (q <= projectCompletionQuarter) {
-                            // During project development, costs are investment costs
-                            // Calculate how much of this quarter is within project development
-                            const quarterStartMonth = q * 3;
-                            const quarterEndMonth = (q + 1) * 3 - 1;
-                            const projectEndMonth = projectDuration - 1;
+                        // Determine how many months in this quarter are during project development
+                        const monthsBeforeCompletion = Math.min(3, Math.max(0, projectDuration - quarterStartMonth));
+                        const monthsAfterCompletion = 3 - monthsBeforeCompletion;
 
-                            if (quarterEndMonth <= projectEndMonth) {
-                                // Entire quarter is before completion
-                                investmentCost += quarterCost;
-                            } else if (quarterStartMonth <= projectEndMonth) {
-                                // Quarter contains the completion point
-                                const monthsBeforeCompletion = projectEndMonth - quarterStartMonth + 1;
-                                const ratio = monthsBeforeCompletion / 3;
-                                investmentCost += quarterCost * ratio;
-                                amcCost += quarterCost * (1 - ratio);
-                            }
-                        } else {
-                            // After project completion, costs are AMC costs
-                            amcCost += quarterCost;
+                        // Calculate investment cost and AMC cost proportions
+                        if (monthsBeforeCompletion > 0) {
+                            investmentCost += monthsBeforeCompletion * monthlyInvestmentCost;
+                        }
+
+                        if (monthsAfterCompletion > 0) {
+                            const year = Math.floor(q / 4);
+                            amcCost += monthsAfterCompletion * monthlyCost * Math.pow(1 + amcGrowth, year);
                         }
 
                         // Add revenue and savings separately
@@ -1708,6 +1719,9 @@
                 generateROICharts(quarterlyData, costVsProfitData);
 
                 fetchAIObservations();
+
+                // Initialize the Export functionality
+                addRequiredLibraries();
 
                 // Scroll down to the chart after generating the forecast
                 setTimeout(() => {
@@ -1747,6 +1761,7 @@
                     let cumulativeCost = parseFloat(row.cells[7].textContent.replace(/[^0-9.-]+/g, "")) || 0;
                     let netProfitLoss = parseFloat(row.cells[8].textContent.replace(/[^0-9.-]+/g, "")) || 0;
                     let cumulativeGain = parseFloat(row.cells[9].textContent.replace(/[^0-9.-]+/g, "")) || 0;
+                    let projectName = projectNameInput;
 
                     forecastData.push({
                         year,
@@ -1758,7 +1773,8 @@
                         projectCost,
                         cumulativeCost,
                         netProfitLoss,
-                        cumulativeGain
+                        cumulativeGain,
+                        projectName
                     });
                 });
 
@@ -2058,6 +2074,567 @@
                     netProfitRow.appendChild(profitCell);
                 });
             }
+
+            if (exportButton) {
+                exportButton.addEventListener('click', handleExportToExcel);
+            } else {
+                console.error('Export button not found. Make sure to add a button with id="export-button" to your HTML.');
+            }
+
+            function addRequiredLibraries() {
+                // Check if libraries are already added
+                if (document.querySelector('script[src*="exceljs"]')) return;
+
+                const excelJsScript = document.createElement('script');
+                excelJsScript.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js';
+                document.head.appendChild(excelJsScript);
+
+                const fileSaverScript = document.createElement('script');
+                fileSaverScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js';
+                document.head.appendChild(fileSaverScript);
+            }
+
+
+            // Main export function
+            async function handleExportToExcel() {
+                try {
+                    // Check if data exists to export
+                    if (summaryData.length === 0) {
+                        alert('Please add at least one gain and calculate ROI before exporting.');
+                        return;
+                    }
+
+                    // Show loading indicator
+                    const loadingElement = document.createElement('div');
+                    loadingElement.id = 'excel-export-loading';
+                    loadingElement.innerHTML = 'Generating Excel file...';
+                    loadingElement.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 5px; z-index: 9999;';
+                    document.body.appendChild(loadingElement);
+
+                    // Force render all charts before capturing
+                    // This ensures all chart canvases are populated, even if user hasn't switched to them
+                    const chartTabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+                    if (chartTabs && chartTabs.length) {
+                        // Store the currently active tab to restore later
+                        const activeTabId = document.querySelector('.tab-pane.active').id;
+
+                        // Temporarily click on each tab to render its content
+                        for (const tab of chartTabs) {
+                            // Trigger click to render chart
+                            tab.click();
+                        }
+
+                        // Return to original tab
+                        document.querySelector(`[data-bs-target="#${activeTabId}"]`).click();
+
+                        // Small delay to ensure charts are fully rendered
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+
+                    // Create a new workbook
+                    const workbook = new ExcelJS.Workbook();
+                    workbook.creator = 'ROI Calculator';
+                    workbook.lastModifiedBy = 'User';
+                    workbook.created = new Date();
+                    workbook.modified = new Date();
+
+                    // Add a worksheet
+                    const worksheet = workbook.addWorksheet('ROI Analysis');
+
+                    // Set column widths
+                    worksheet.columns = [
+                        { header: '', width: 25 },
+                        { header: '', width: 15 },
+                        { header: '', width: 15 },
+                        { header: '', width: 15 },
+                        { header: '', width: 15 },
+                        { header: '', width: 15 }
+                    ];
+
+                    // Add project name
+                    const projectName = projectNameInput.value || 'Project';
+                    worksheet.mergeCells('A1:F1');
+                    const titleRow = worksheet.getRow(1);
+                    titleRow.getCell(1).value = projectName + ' - ROI Analysis';
+                    titleRow.getCell(1).font = { size: 16, bold: true };
+                    titleRow.getCell(1).alignment = { horizontal: 'center' };
+                    titleRow.height = 25;
+
+                    // Add date
+                    worksheet.mergeCells('A2:F2');
+                    const dateRow = worksheet.getRow(2);
+                    dateRow.getCell(1).value = 'Generated on: ' + new Date().toLocaleDateString();
+                    dateRow.getCell(1).alignment = { horizontal: 'center' };
+
+                    // Add a space
+                    worksheet.addRow([]);
+
+                    // ===== PROJECT COSTS SECTION =====
+                    let currentRow = 4;
+
+                    const costHeaderRow = worksheet.getRow(currentRow++);
+                    costHeaderRow.getCell(1).value = 'Project Costs';
+                    costHeaderRow.getCell(1).font = { size: 14, bold: true };
+                    costHeaderRow.height = 20;
+
+                    // Add cost data
+                    const upfrontCost = parseFloat(document.getElementById('upfront-cost').value) || 0;
+                    const projectDuration = parseInt(document.getElementById('project-duration').value) || 0;
+                    const monthlyCost = parseFloat(document.getElementById('monthly-cost').value) || 0;
+                    const amcGrowth = parseFloat(document.getElementById('amc-growth').value) || 0;
+
+                    worksheet.getRow(currentRow++).values = ['Upfront Cost', `$${upfrontCost.toLocaleString()}`];
+                    worksheet.getRow(currentRow++).values = ['Project Duration', `${projectDuration} months`];
+                    worksheet.getRow(currentRow++).values = ['Monthly Recurring Cost', `$${monthlyCost.toLocaleString()}`];
+                    worksheet.getRow(currentRow++).values = ['Expected Increase in Recurring Costs Yearly', `${amcGrowth}%`];
+
+                    // Add a space
+                    currentRow++;
+
+                    // ===== GAINS SUMMARY TABLE =====
+                    const gainsHeaderRow = worksheet.getRow(currentRow++);
+                    gainsHeaderRow.getCell(1).value = 'Gains Summary';
+                    gainsHeaderRow.getCell(1).font = { size: 14, bold: true };
+                    gainsHeaderRow.height = 20;
+
+                    // Add headers for gains table
+                    const gainsTableHeader = worksheet.getRow(currentRow++);
+                    gainsTableHeader.values = ['Gain', 'Revenue Increase', 'Cost Saving'];
+                    gainsTableHeader.eachCell((cell) => {
+                        cell.font = { bold: true };
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFD3D3D3' }
+                        };
+                        cell.border = {
+                            top: { style: 'thin' },
+                            left: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            right: { style: 'thin' }
+                        };
+                    });
+
+                    // Add gains data rows
+                    let totalRevenue = 0;
+                    let totalSavings = 0;
+
+                    summaryData.forEach(item => {
+                        const row = worksheet.getRow(currentRow++);
+                        row.values = [
+                            item.gain,
+                            item.increaseRevenue,
+                            item.costSaving
+                        ];
+
+                        // Format cells
+                        row.getCell(2).numFmt = '$#,##0.00';
+                        row.getCell(3).numFmt = '$#,##0.00';
+
+                        row.eachCell((cell) => {
+                            cell.border = {
+                                top: { style: 'thin' },
+                                left: { style: 'thin' },
+                                bottom: { style: 'thin' },
+                                right: { style: 'thin' }
+                            };
+                        });
+
+                        totalRevenue += item.increaseRevenue;
+                        totalSavings += item.costSaving;
+                    });
+
+                    // Add totals row
+                    const totalsRow = worksheet.getRow(currentRow++);
+                    totalsRow.values = ['Total', totalRevenue, totalSavings];
+                    totalsRow.getCell(2).numFmt = '$#,##0.00';
+                    totalsRow.getCell(3).numFmt = '$#,##0.00';
+
+                    totalsRow.eachCell((cell, colNumber) => {
+                        if (colNumber <= 3) {
+                            cell.font = { bold: true };
+                            cell.border = {
+                                top: { style: 'thin' },
+                                left: { style: 'thin' },
+                                bottom: { style: 'double' },
+                                right: { style: 'thin' }
+                            };
+                        }
+                    });
+
+                    // Add spaces
+                    currentRow += 2;
+
+                    // ===== ROI Charts Section =====
+                    // 1. Convert charts to base64 images
+                    try {
+                        // Project ROI Chart
+                        const projectRoiChart = document.getElementById('project-roi-chart');
+                        if (projectRoiChart) {
+                            const projectRoiChartBase64 = projectRoiChart.toDataURL('image/png');
+
+                            const roiChartTitle = worksheet.getRow(currentRow++);
+                            roiChartTitle.getCell(1).value = 'Project ROI Over Time';
+                            roiChartTitle.getCell(1).font = { size: 14, bold: true };
+
+                            // Add the chart image to the worksheet
+                            const roiChartImage = workbook.addImage({
+                                base64: projectRoiChartBase64,
+                                extension: 'png',
+                            });
+
+                            worksheet.addImage(roiChartImage, {
+                                tl: { col: 0, row: currentRow },
+                                br: { col: 5, row: currentRow + 15 }
+                            });
+
+                            // Skip rows for the image
+                            currentRow += 16;
+                        }
+
+                        // Add project ROI table data
+                        const projectRoiTableTitle = worksheet.getRow(currentRow++);
+                        projectRoiTableTitle.getCell(1).value = 'Project ROI Data';
+                        projectRoiTableTitle.getCell(1).font = { size: 14, bold: true };
+
+                        // Get data from the cumulative cost table
+                        const costRow = document.getElementById('cumulative-cost-row');
+                        const gainRow = document.getElementById('cumulative-gain-row');
+
+                        if (costRow && gainRow) {
+                            // Get quarter labels
+                            const quarterLabels = [];
+                            const tableHeaders = document.querySelectorAll('#project-roi-table thead th');
+                            for (let i = 1; i < tableHeaders.length; i++) {
+                                quarterLabels.push(tableHeaders[i].textContent);
+                            }
+
+                            // Add headers row
+                            const headerRow = ['Data', ...quarterLabels];
+                            const tableHeaderRow = worksheet.getRow(currentRow++);
+                            tableHeaderRow.values = headerRow;
+
+                            tableHeaderRow.eachCell((cell) => {
+                                cell.font = { bold: true };
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFD3D3D3' }
+                                };
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+
+                            // Add cumulative cost row
+                            const costCells = costRow.querySelectorAll('td');
+                            const costValues = ['Cumulative Project Cost'];
+                            for (let i = 1; i < costCells.length; i++) {
+                                // Extract the numeric value from the formatted string
+                                const value = costCells[i].textContent.replace(/[$,]/g, '');
+                                costValues.push(parseFloat(value));
+                            }
+
+                            const costDataRow = worksheet.getRow(currentRow++);
+                            costDataRow.values = costValues;
+                            for (let i = 1; i < costValues.length; i++) {
+                                costDataRow.getCell(i + 1).numFmt = '$#,##0.00';
+                            }
+
+                            costDataRow.eachCell((cell) => {
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+
+                            // Add cumulative gain row
+                            const gainCells = gainRow.querySelectorAll('td');
+                            const gainValues = ['Cumulative Cost Savings or Revenue Rise'];
+                            for (let i = 1; i < gainCells.length; i++) {
+                                // Extract the numeric value from the formatted string
+                                const value = gainCells[i].textContent.replace(/[$,]/g, '');
+                                gainValues.push(parseFloat(value));
+                            }
+
+                            const gainDataRow = worksheet.getRow(currentRow++);
+                            gainDataRow.values = gainValues;
+                            for (let i = 1; i < gainValues.length; i++) {
+                                gainDataRow.getCell(i + 1).numFmt = '$#,##0.00';
+                            }
+
+                            gainDataRow.eachCell((cell) => {
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+                        }
+
+                        // Add spaces
+                        currentRow += 2;
+
+                        // Cost vs Profit Chart
+                        const costVsProfitChart = document.getElementById('cost-vs-profit-chart');
+                        if (costVsProfitChart) {
+                            const costVsProfitChartBase64 = costVsProfitChart.toDataURL('image/png');
+
+                            const costProfitChartTitle = worksheet.getRow(currentRow++);
+                            costProfitChartTitle.getCell(1).value = 'Cost vs Cost Savings or Revenue Rise';
+                            costProfitChartTitle.getCell(1).font = { size: 14, bold: true };
+
+                            // Add the chart image to the worksheet
+                            const costProfitChartImage = workbook.addImage({
+                                base64: costVsProfitChartBase64,
+                                extension: 'png',
+                            });
+
+                            worksheet.addImage(costProfitChartImage, {
+                                tl: { col: 0, row: currentRow },
+                                br: { col: 5, row: currentRow + 15 }
+                            });
+
+                            // Skip rows for the image
+                            currentRow += 16;
+                        }
+
+                        // Add cost vs profit table data
+                        const costProfitTableTitle = worksheet.getRow(currentRow++);
+                        costProfitTableTitle.getCell(1).value = 'Cost vs Profit Data';
+                        costProfitTableTitle.getCell(1).font = { size: 14, bold: true };
+
+                        // Get data from the cost vs profit table
+                        const projectCostRow = document.getElementById('project-cost-row');
+                        const netProfitRow = document.getElementById('net-profit-row');
+
+                        if (projectCostRow && netProfitRow) {
+                            // Get quarter labels
+                            const quarterLabels = [];
+                            const tableHeaders = document.querySelectorAll('#cost-vs-profit-table thead th');
+                            for (let i = 1; i < tableHeaders.length; i++) {
+                                quarterLabels.push(tableHeaders[i].textContent);
+                            }
+
+                            // Add headers row
+                            const headerRow = ['Data', ...quarterLabels];
+                            const tableHeaderRow = worksheet.getRow(currentRow++);
+                            tableHeaderRow.values = headerRow;
+
+                            tableHeaderRow.eachCell((cell) => {
+                                cell.font = { bold: true };
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFD3D3D3' }
+                                };
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+
+                            // Add project cost row
+                            const costCells = projectCostRow.querySelectorAll('td');
+                            const costValues = ['Project Cost'];
+                            for (let i = 1; i < costCells.length; i++) {
+                                // Extract the numeric value from the formatted string
+                                const value = costCells[i].textContent.replace(/[$,]/g, '');
+                                costValues.push(parseFloat(value));
+                            }
+
+                            const costDataRow = worksheet.getRow(currentRow++);
+                            costDataRow.values = costValues;
+                            for (let i = 1; i < costValues.length; i++) {
+                                costDataRow.getCell(i + 1).numFmt = '$#,##0.00';
+                            }
+
+                            costDataRow.eachCell((cell) => {
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+
+                            // Add net profit row
+                            const profitCells = netProfitRow.querySelectorAll('td');
+                            const profitValues = ['Cost Savings or Revenue Rise'];
+                            for (let i = 1; i < profitCells.length; i++) {
+                                // Extract the numeric value from the formatted string
+                                const value = profitCells[i].textContent.replace(/[$,]/g, '');
+                                profitValues.push(parseFloat(value));
+                            }
+
+                            const profitDataRow = worksheet.getRow(currentRow++);
+                            profitDataRow.values = profitValues;
+                            for (let i = 1; i < profitValues.length; i++) {
+                                profitDataRow.getCell(i + 1).numFmt = '$#,##0.00';
+                            }
+
+                            profitDataRow.eachCell((cell) => {
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+                        }
+
+                        // Add spaces
+                        currentRow += 2;
+
+                    } catch (chartError) {
+                        console.error('Error capturing charts:', chartError);
+                        const chartErrorRow = worksheet.getRow(currentRow++);
+                        chartErrorRow.getCell(1).value = 'Charts could not be included in this export. Please capture screenshots separately.';
+                        chartErrorRow.getCell(1).font = { italic: true };
+
+                        // Skip some rows
+                        currentRow += 2;
+                    }
+
+                    // ===== ROI Table =====
+                    const roiTableTitle = worksheet.getRow(currentRow++);
+                    roiTableTitle.getCell(1).value = 'ROI Analysis Table';
+                    roiTableTitle.getCell(1).font = { size: 14, bold: true };
+
+                    // Try to get ROI table data
+                    const roiTable = document.querySelector('#roi-table tbody');
+                    if (roiTable) {
+                        // Add table headers
+                        const roiTableHeaders = document.querySelectorAll('#roi-table thead th');
+                        const headerValues = Array.from(roiTableHeaders).map(th => th.textContent);
+
+                        const roiHeaderRow = worksheet.getRow(currentRow++);
+                        roiHeaderRow.values = headerValues;
+
+                        roiHeaderRow.eachCell((cell) => {
+                            cell.font = { bold: true };
+                            cell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: 'FFD3D3D3' }
+                            };
+                            cell.border = {
+                                top: { style: 'thin' },
+                                left: { style: 'thin' },
+                                bottom: { style: 'thin' },
+                                right: { style: 'thin' }
+                            };
+                            cell.alignment = { wrapText: true };
+                        });
+
+                        // Add row data
+                        const roiRows = roiTable.querySelectorAll('tr');
+                        roiRows.forEach(tableRow => {
+                            const cells = tableRow.querySelectorAll('td');
+
+                            // Skip if no data
+                            if (cells.length === 0) return;
+
+                            // Get values
+                            const rowValues = Array.from(cells).map(cell => {
+                                const text = cell.textContent.trim();
+                                if (text.startsWith('$')) {
+                                    // Remove $ and commas, convert to number
+                                    return parseFloat(text.replace(/[$,]/g, ''));
+                                }
+                                return text;
+                            });
+
+                            const excelRow = worksheet.getRow(currentRow++);
+                            excelRow.values = rowValues;
+
+                            // Format currency cells
+                            for (let i = 1; i < rowValues.length; i++) {
+                                if (typeof rowValues[i] === 'number') {
+                                    excelRow.getCell(i + 1).numFmt = '$#,##0.00';
+                                }
+                            }
+
+                            excelRow.eachCell((cell) => {
+                                cell.border = {
+                                    top: { style: 'thin' },
+                                    left: { style: 'thin' },
+                                    bottom: { style: 'thin' },
+                                    right: { style: 'thin' }
+                                };
+                            });
+                        });
+                    }
+
+                    // Add spaces
+                    currentRow += 2;
+
+                    // ===== AI Observations =====
+                    const aiObsTitle = worksheet.getRow(currentRow++);
+                    aiObsTitle.getCell(1).value = 'AI Observations';
+                    aiObsTitle.getCell(1).font = { size: 14, bold: true };
+
+                    // Get AI observations
+                    const aiObservationsElement = document.getElementById('aiObservations');
+                    if (aiObservationsElement) {
+                        const observations = aiObservationsElement.textContent.trim();
+
+                        if (observations) {
+                            // Split observations into paragraphs
+                            const paragraphs = observations.split('\n')
+                                .map(p => p.trim())
+                                .filter(p => p.length > 0);
+
+                            // Add each paragraph
+                            paragraphs.forEach(paragraph => {
+                                worksheet.mergeCells(`A${currentRow}:F${currentRow}`);
+                                const obsRow = worksheet.getRow(currentRow++);
+                                obsRow.getCell(1).value = paragraph;
+                                obsRow.getCell(1).alignment = { wrapText: true };
+                            });
+                        } else {
+                            worksheet.getRow(currentRow++).getCell(1).value = 'No AI observations available.';
+                        }
+                    }
+
+                    // Generate file
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    saveAs(new Blob([buffer]), `${projectName}_ROI_Analysis.xlsx`);
+
+                    // Remove loading indicator
+                    const loadingIndicator = document.getElementById('excel-export-loading');
+                    if (loadingIndicator) {
+                        loadingIndicator.remove();
+                    }
+
+                } catch (error) {
+                    console.error('Error exporting to Excel:', error);
+                    alert('There was an error exporting to Excel: ' + error.message);
+
+                    // Remove loading indicator in case of error
+                    const loadingIndicator = document.getElementById('excel-export-loading');
+                    if (loadingIndicator) {
+                        loadingIndicator.remove();
+                    }
+                }
+            }
+
+            // Helper function for formatting currency
+            function formatExcelCurrency(value) {
+                return value ? `$${value.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                })}` : '$0';
+            }    
 
 
 
