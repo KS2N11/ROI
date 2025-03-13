@@ -71,8 +71,7 @@ def generate_ai_observations():
                         'projectCost',
                         'cumulativeCost',
                         'netProfitLoss',
-                        'cumulativeGain',
-                        'projectName']
+                        'cumulativeGain']
         
         for entry in data:
             for key in required_keys:
@@ -84,7 +83,7 @@ def generate_ai_observations():
             (f"Year {entry['year']}: Investment = ${entry['investmentCost']:.2f}, AMC Cost = ${entry['amcCost']:.2f}, "
              f"Revenue = ${entry['revenueIncrease']:.2f}, Cost Savings = ${entry['costSavings']:.2f}, Total Revenue & Savings = ${entry['totalRevenueAndSavings']:.2f}, "
              f"Project Cost = ${entry['projectCost']:.2f}, Cumulative Project Cost = ${entry['cumulativeCost']:.2f}, Net Profit/Loss = ${entry['netProfitLoss']:.2f}, "
-             f"Cumulative Gain = ${entry['cumulativeGain']:.2f}, Project Name = ${entry['projectName']:.2f}")
+             f"Cumulative Gain = ${entry['cumulativeGain']:.2f}")
             for entry in data
         ])
 
