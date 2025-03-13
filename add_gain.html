@@ -1491,7 +1491,7 @@
                     editingIndex = index;
 
                     // Scroll to the gain section
-                    const gainSection = document.getElementById('gain-section') || gainCategorySelect.closest('section');
+                    let gainSection =  document.getElementById('project-name')
                     if (gainSection) {
                         gainSection.scrollIntoView({ behavior: "smooth", block: "start" });
                     }
