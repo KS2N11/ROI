@@ -2304,7 +2304,7 @@
                             // Get quarter labels
                             const quarterLabels = [];
                             const tableHeaders = document.querySelectorAll('#project-roi-table thead th');
-                            for (let i = 1; i < tableHeaders.length; i++) {
+                            for (let i = 0; i < tableHeaders.length; i++) {
                                 quarterLabels.push(tableHeaders[i].textContent);
                             }
 
@@ -2331,7 +2331,7 @@
                             // Add cumulative cost row
                             const costCells = costRow.querySelectorAll('td');
                             const costValues = ['Cumulative Project Cost'];
-                            for (let i = 1; i < costCells.length; i++) {
+                            for (let i = 0; i < costCells.length; i++) {
                                 // Extract the numeric value from the formatted string
                                 const value = costCells[i].textContent.replace(/[$,]/g, '');
                                 costValues.push(parseFloat(value));
@@ -2339,7 +2339,7 @@
 
                             const costDataRow = worksheet.getRow(currentRow++);
                             costDataRow.values = costValues;
-                            for (let i = 1; i < costValues.length; i++) {
+                            for (let i = 0; i < costValues.length; i++) {
                                 costDataRow.getCell(i + 1).numFmt = '$#,##0.00';
                             }
 
@@ -2355,7 +2355,7 @@
                             // Add cumulative gain row
                             const gainCells = gainRow.querySelectorAll('td');
                             const gainValues = ['Cumulative Cost Savings or Revenue Rise'];
-                            for (let i = 1; i < gainCells.length; i++) {
+                            for (let i = 0; i < gainCells.length; i++) {
                                 // Extract the numeric value from the formatted string
                                 const value = gainCells[i].textContent.replace(/[$,]/g, '');
                                 gainValues.push(parseFloat(value));
@@ -2363,7 +2363,7 @@
 
                             const gainDataRow = worksheet.getRow(currentRow++);
                             gainDataRow.values = gainValues;
-                            for (let i = 1; i < gainValues.length; i++) {
+                            for (let i = 0; i < gainValues.length; i++) {
                                 gainDataRow.getCell(i + 1).numFmt = '$#,##0.00';
                             }
 
@@ -2417,7 +2417,7 @@
                             // Get quarter labels
                             const quarterLabels = [];
                             const tableHeaders = document.querySelectorAll('#cost-vs-profit-table thead th');
-                            for (let i = 1; i < tableHeaders.length; i++) {
+                            for (let i = 0; i < tableHeaders.length; i++) {
                                 quarterLabels.push(tableHeaders[i].textContent);
                             }
 
@@ -2444,7 +2444,7 @@
                             // Add project cost row
                             const costCells = projectCostRow.querySelectorAll('td');
                             const costValues = ['Project Cost'];
-                            for (let i = 1; i < costCells.length; i++) {
+                            for (let i = 0; i < costCells.length; i++) {
                                 // Extract the numeric value from the formatted string
                                 const value = costCells[i].textContent.replace(/[$,]/g, '');
                                 costValues.push(parseFloat(value));
@@ -2452,7 +2452,7 @@
 
                             const costDataRow = worksheet.getRow(currentRow++);
                             costDataRow.values = costValues;
-                            for (let i = 1; i < costValues.length; i++) {
+                            for (let i = 0; i < costValues.length; i++) {
                                 costDataRow.getCell(i + 1).numFmt = '$#,##0.00';
                             }
 
@@ -2468,7 +2468,7 @@
                             // Add net profit row
                             const profitCells = netProfitRow.querySelectorAll('td');
                             const profitValues = ['Cost Savings or Revenue Rise'];
-                            for (let i = 1; i < profitCells.length; i++) {
+                            for (let i = 0; i < profitCells.length; i++) {
                                 // Extract the numeric value from the formatted string
                                 const value = profitCells[i].textContent.replace(/[$,]/g, '');
                                 profitValues.push(parseFloat(value));
@@ -2476,7 +2476,7 @@
 
                             const profitDataRow = worksheet.getRow(currentRow++);
                             profitDataRow.values = profitValues;
-                            for (let i = 1; i < profitValues.length; i++) {
+                            for (let i = 0; i < profitValues.length; i++) {
                                 profitDataRow.getCell(i + 1).numFmt = '$#,##0.00';
                             }
 
@@ -2556,7 +2556,7 @@
                             excelRow.values = rowValues;
 
                             // Format currency cells
-                            for (let i = 1; i < rowValues.length; i++) {
+                            for (let i = 0; i < rowValues.length; i++) {
                                 if (typeof rowValues[i] === 'number') {
                                     excelRow.getCell(i + 1).numFmt = '$#,##0.00';
                                 }
